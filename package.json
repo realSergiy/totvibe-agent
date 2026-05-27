@@ -1,0 +1,19 @@
+{
+  "name": "totvibe-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "bun run packages/tui/src/index.tsx",
+    "typecheck": "tsc --noEmit",
+    "build:sandbox": "bash scripts/build-sandbox.sh"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19",
+    "typescript": "^5"
+  }
+}

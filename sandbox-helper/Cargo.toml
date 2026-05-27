@@ -1,0 +1,20 @@
+[package]
+name = "totvibe-sandbox"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "totvibe-sandbox"
+path = "src/main.rs"
+
+[dependencies]
+landlock = "0.4"
+nix = { version = "0.29", features = ["sched", "process", "user"] }
+anyhow = "1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"
