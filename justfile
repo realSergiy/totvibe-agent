@@ -8,3 +8,7 @@ totvibe *args:
 # Build the Linux Landlock + namespace sandbox helper (needs Rust)
 build-sandbox:
     bun run build:sandbox
+
+# Shallow-clone a repo (owner/name or URL) into reference_clones/; optional ref keeps history back to but excluding that commit/tag (e.g. just clone microsoft/vscode 1.121.0)
+clone repo ref="":
+    scripts/clone_reference.py {{repo}} {{ref}}
