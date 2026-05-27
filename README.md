@@ -1,4 +1,4 @@
-# totvibe-agent
+# totvibe
 
 A minimalist terminal coding assistant — a streaming tool-use loop wrapped in an [OpenTUI](https://opentui.com) TUI, on [Bun](https://bun.com), powered by the [Vercel AI SDK](https://ai-sdk.dev) v6.
 
