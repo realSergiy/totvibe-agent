@@ -7,16 +7,15 @@
     "totvibe": "./src/index.tsx"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^2",
+    "@opentui/core": "latest",
+    "@opentui/react": "latest",
     "@totvibe/core": "workspace:*",
     "@totvibe/safety": "workspace:*",
     "@totvibe/sandbox": "workspace:*",
     "@totvibe/tools": "workspace:*",
-    "@ai-sdk/anthropic": "^2",
-    "@ai-sdk/openai": "^2",
-    "@ai-sdk/openai-compatible": "^2",
-    "@opentui/core": "latest",
-    "@opentui/react": "latest",
     "ai": "^6",
+    "citty": "^0.2.2",
     "react": "^19"
   }
 }

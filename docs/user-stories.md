@@ -29,16 +29,17 @@ touch anything outside the working directory unless the user explicitly grants i
 *As a developer, I want to launch the assistant in my project folder with a single command
 so I can start working immediately.*
 
-- The user runs `bun start` from the project root. The program opens full-screen in the
-  terminal at 30 fps.
+- The user runs `bun start` (or `just totvibe`) from the project root. The program opens
+  full-screen in the terminal at 30 fps.
 - The current working directory becomes the assistant's workspace — every relative file
-  path and every shell command is rooted here, and the sandbox treats this directory as
-  the only writable project location by default.
+  path and every shell command is rooted here, and the sandbox (on by default) treats this
+  directory as the only writable project location.
 - On launch the user sees three regions stacked top to bottom:
-  1. a **status bar** (provider, model, connection dot, sandbox state, working
-     directory, current activity, and the `Ctrl+P providers` hint);
-  2. a **conversation pane** (empty at first, scrollable, sticks to the bottom as new
-     content arrives);
+  1. a **status bar** (provider, model, live connection indicator, sandbox state, working
+     directory, current activity, and the `/provider to connect` hint);
+  2. a **conversation pane** showing an ASCII **welcome banner** ("totvibe") with a
+     one-line tagline until the first message arrives, then scrollable and sticking to the
+     bottom as new content arrives;
   3. an **input box** at the bottom, focused and ready for typing.
 
 ### 1.2 First-run connect prompt
@@ -46,9 +47,12 @@ so I can start working immediately.*
 *As a first-time user, I don't want to get stuck at a dead prompt when I haven't set up a
 key yet.*
 
-- If the active provider has **no API key**, the connect dialog (Section 7) opens
-  automatically instead of the input box, walking the user through choosing a provider and
-  pasting a key before anything else.
+- If **no provider has an API key**, the connect dialog (Section 7) opens automatically
+  instead of the input box, walking the user through choosing a provider and pasting a key
+  before anything else.
+- If at least one provider already has a key, totvibe skips the dialog and goes straight to
+  the session — preferring the configured `AI_PROVIDER` when it's connected, otherwise the
+  first connected provider.
 
 ---
 
@@ -226,21 +230,23 @@ prompt so the assistant can work end-to-end without me.*
 ## 7. Choosing a provider and model (the connect dialog)
 
 The connect dialog is the program's settings hub for the model. It opens **automatically
-on first run when the active provider has no key**, and the user can open it any time with
-**`Ctrl+P`**.
+on first run when no provider has a key**, and the user can open it any time by typing the
+**`/provider`** command in the input box.
 
 ### 7.1 Open the dialog and browse providers
 
 *As a user, I want to see every supported provider with its connection status and model at
 a glance.*
 
-- Each line shows a connection dot (● connected / ○ not), the provider's label and name,
-  and the model that would be used. The supported providers are:
-  - **Anthropic Claude** (`anthropic`) — default model `claude-opus-4-7`
-  - **OpenAI** (`openai`) — default `gpt-5.1`
-  - **Alibaba Qwen** (`qwen`), **Z.ai GLM** (`glm`), **Moonshot Kimi** (`kimi`),
-    **Xiaomi MiMo** (`mimo`), **DeepSeek** (`deepseek`) — each OpenAI-compatible, each
-    with its own default model.
+- Each line shows a connection dot (● connected / ○ not), the provider's label, and the
+  model that would be used. The supported providers — all OpenAI-compatible, each with its
+  own default model — are **Alibaba Qwen** (`qwen`), **Z.ai GLM Coding Plan — Global**
+  (`glm`), **Zhipu GLM Coding Plan — China** (`glm-cn`), **Moonshot Kimi** (`kimi`),
+  **Xiaomi MiMo** (`mimo`), **DeepSeek** (`deepseek`), **Google Gemini** (`gemini`),
+  **MiniMax** (`minimax`), and **Mistral AI** (`mistral`). The two GLM entries load the
+  **GLM Coding Plan** the same way Z.ai's own coding-tool helper does: `glm` points at the
+  Global coding endpoint (`api.z.ai`) and `glm-cn` at the China endpoint
+  (`open.bigmodel.cn`).
 - **↑ / ↓** move the highlight between providers (wraps around top/bottom). For the
   highlighted provider the dialog shows whether it's connected ("Connected via
   <ENV_VAR>") or what's missing ("Not connected — needs <ENV_VAR>" plus a hint and the
@@ -254,13 +260,31 @@ a glance.*
   (`xdg-open`/`open`/`start`). On a headless/SSH box where no browser opens, the URL is
   shown in the dialog instead so the user can copy it.
 
-### 7.3 Paste and save an API key
+### 7.2a Test whether a provider actually connects
 
-*As a user, I want to paste my key once and have it remembered.*
+*As a user, I want to confirm a stored key really works, not just that it's set.*
 
-- Pressing **`k`** switches to key-entry: the user pastes the API key and presses
-  **Enter** to save. The key is written to `.env` and applied live; a confirmation
-  ("Saved <ENV_VAR> to .env") appears and the provider becomes active.
+- Pressing **`t`** probes the highlighted provider's `/models` endpoint with its stored key
+  and reports the result in the dialog: **connection OK**, **key rejected** (HTTP 401/403),
+  or **unreachable** (network/timeout). If no key is set, it tells the user to press `k`
+  first. This is a live network check, distinct from the ● dot, which only means "a key is
+  present".
+
+### 7.3 Paste, verify, and save an API key
+
+*As a user, I want to paste my key once, know immediately whether it actually works, and
+have it remembered.*
+
+- Pressing **`k`** switches to key-entry, then the user pastes the API key and presses
+  **Enter** to save. Pasting (e.g. **`Ctrl+Shift+V`**) also works without pressing `k`
+  first: a paste anywhere in the dialog is captured straight into the key field and
+  switches to key-entry.
+- On **Enter**, the key is **verified** against the provider's `/models` endpoint before
+  anything is saved (the dialog shows "Verifying <ENV_VAR>…"). If the provider **rejects**
+  the key (HTTP 401/403), nothing is written, the typed key stays in the field, and a
+  notice tells the user to fix it and try again. If the key is accepted — or simply can't
+  be reached (offline / timeout) — it is written to `.env`, applied live, and the provider
+  becomes active.
 
 ### 7.4 Edit the model id
 
@@ -295,9 +319,12 @@ a glance.*
 *As a user, I want to see at a glance whether shell commands and writes are confined to my
 project.*
 
+- The sandbox is **on by default** — the user gets full protection without doing anything.
 - The status bar always shows the current sandbox state with a color cue:
   - **`sandbox: fs+net`** (green) — full protection: filesystem confined and network
     isolated.
+  - **`sandbox: off (--no-sandbox)`** (amber) — the user deliberately started without the
+    sandbox (Story 8.5); nothing is confined.
   - **`sandbox: fs`** (green) — filesystem confined; network access allowed (because the
     user opted into network).
   - **`sandbox: net-only (no landlock)`** (amber) — the kernel lacks Landlock, so only
@@ -343,6 +370,19 @@ an installer or fetch a dependency).*
   network. The status bar reflects this as `sandbox: fs` (filesystem still confined,
   network open).
 
+### 8.5 Start without the sandbox
+
+*As a user on a trusted machine, I want to opt out of confinement entirely when I
+deliberately need the assistant to reach beyond the working directory.*
+
+- The sandbox is **on by default**; the user opts out with the **`--no-sandbox`**
+  command-line flag (e.g. `bun start --no-sandbox` or `just totvibe --no-sandbox`).
+- With the flag set: the file-tool allow-list checks are skipped (reads/writes can go
+  anywhere) and `run_bash` runs in a plain, unconfined shell. The status bar shows
+  **`sandbox: off (--no-sandbox)`** (amber) so the reduced protection is never hidden.
+- Flags are parsed by [citty](https://github.com/unjs/citty); `bun start --help` lists
+  them.
+
 ---
 
 ## 9. Reading the status bar
@@ -355,19 +395,38 @@ guess what's happening.*
 Left to right, the status bar shows:
 
 1. **`totvibe`** — the app name.
-2. **Connection + model** — a dot (● connected / ○ not, green/amber) followed by
-   `provider:model`, e.g. `● anthropic:claude-opus-4-7`.
+2. **Connection + model** — a live connection indicator followed by `provider:model`,
+   e.g. `● qwen:qwen3.7-max`. totvibe probes the active provider's `/models` on launch and
+   after each change, so the indicator reflects real reachability, not just key presence:
+   **● ok** (green), **◌ (checking…)** (cyan), **✗ (key rejected)** (red), **● (unreachable)**
+   (amber), or **○** when no key is set (amber).
 3. **Sandbox state** — as described in Section 8.
 4. **Working directory** — shortened with `~` for the home directory.
 5. **Activity** — `ready`, `thinking…`, `approval required`, `ready · <reason>`,
    `error`, or `aborted`.
-6. **`Ctrl+P providers`** — the hint for opening the connect dialog.
+6. **`/provider to connect`** — the hint for opening the connect dialog.
 
 ---
 
-## 10. Quitting
+## 10. Selecting and copying text
 
-### 10.1 Exit instantly
+### 10.1 Select and copy with the terminal's own tools
+
+*As a user, I want to select text in the conversation and copy it the way I do in any other
+terminal program, so I can paste an answer or a command elsewhere.*
+
+- totvibe does **not** capture the mouse, so the terminal emulator keeps full control of
+  text selection. The user drags to select any text in the conversation (prose, tool
+  output, error lines) and copies it with the terminal's own shortcut — **`Ctrl+Shift+C`**
+  on most Linux terminals (`Cmd+C` on macOS).
+- **Right-click** opens the terminal emulator's native context menu (copy, paste, etc.)
+  rather than being swallowed by the app.
+
+---
+
+## 11. Quitting
+
+### 11.1 Exit instantly
 
 *As a user, I want to exit the program instantly at any time.*
 
@@ -378,9 +437,9 @@ Left to right, the status bar shows:
 
 ---
 
-## 11. Configuring via environment / `.env`
+## 12. Configuring via environment / `.env`
 
-### 11.1 Preset everything in a file
+### 12.1 Preset everything in a file
 
 *As a user, I want to preset provider, model, key, approvals, and network in a file so I
 don't have to click through the dialog each run.*
@@ -389,14 +448,17 @@ Bun loads `.env` automatically. The user-facing settings:
 
 | Variable | Effect for the user |
 |---|---|
-| `AI_PROVIDER` | Which provider to start with (`anthropic` default, or `openai`/`qwen`/`glm`/`kimi`/`mimo`/`deepseek`). An unknown value stops startup with a message listing the valid choices. |
+| `AI_PROVIDER` | Which provider to start with (`qwen` default, or `glm`/`glm-cn`/`kimi`/`mimo`/`deepseek`/`gemini`/`minimax`/`mistral`). An unknown value stops startup with a message listing the valid choices. |
 | `MODEL` | Override the model id for the chosen provider. |
-| `<PROVIDER>_API_KEY` | The key for the chosen provider (e.g. `ANTHROPIC_API_KEY`, `DASHSCOPE_API_KEY`). Also writable via the dialog's `k` action. |
+| `<PROVIDER>_API_KEY` | The key for the chosen provider (e.g. `DASHSCOPE_API_KEY` for `qwen`, `ZAI_API_KEY` for `glm`, `ZHIPU_API_KEY` for `glm-cn`). Also writable via the dialog's `k` action. |
 | `AUTO_APPROVE=1` | Skip all approval prompts (Section 6). |
 | `TOTVIBE_SANDBOX_NET=inherit` | Allow network in sandboxed commands (Section 8.4). |
 | `TOTVIBE_SANDBOX_BIN` | Point at a custom sandbox helper binary. |
 
-### 11.2 Keys saved from the dialog persist
+Turning the sandbox **off** is a command-line flag, not an env var: `--no-sandbox`
+(Story 8.5). The sandbox is on by default.
+
+### 12.2 Keys saved from the dialog persist
 
 *As a user, I want a key I pasted in the dialog to still be there next launch.*
 
@@ -409,16 +471,18 @@ Bun loads `.env` automatically. The user-facing settings:
 
 | # | Function | How the user triggers it | What it does |
 |---|---|---|---|
-| 1 | Launch | `bun start` | Opens the TUI in the working directory. |
+| 1 | Launch | `bun start` / `just totvibe` | Opens the TUI in the working directory, sandboxed by default. |
 | 2 | Ask | Type + **Enter** | Sends a natural-language request to the assistant. |
 | 3 | Live response | (automatic) | Streams prose, tool calls, and errors into the conversation. |
 | 4 | `read_file` / `list_dir` | (assistant, automatic) | Reads files / lists dirs without asking. |
 | 5 | `write_file` / `run_bash` | (assistant, gated) | Writes files / runs shell commands after approval. |
 | 6 | Approve / skip | **y** / **n** / **Esc** | Allows or denies a pending change. |
 | 7 | Auto-approve | `AUTO_APPROVE=1` | Removes approval prompts for unattended runs. |
-| 8 | Connect dialog | **Ctrl+P** (or auto on first run) | Pick provider, switch model, paste & save key, open key page. |
+| 8 | Connect dialog | Type **`/provider`** (or auto when no provider has a key) | Pick provider, switch model, paste & verify & save key, test connection, open key page. |
 | 9 | `/grant <path>` | Type in input box | Adds a path to the session's writable allow-list. |
 | 10 | Network toggle | `TOTVIBE_SANDBOX_NET=inherit` | Lets sandboxed commands use the network. |
-| 11 | Status bar | (always visible) | Shows provider, model, connection, sandbox state, cwd, activity. |
-| 12 | Quit | **Ctrl+C** | Exits immediately and restores the terminal. |
-| 13 | Env config | `.env` / environment | Presets provider, model, key, approvals, sandbox. |
+| 11 | Disable sandbox | `--no-sandbox` flag | Starts without filesystem/network confinement. |
+| 12 | Status bar | (always visible) | Shows provider, model, connection, sandbox state, cwd, activity. |
+| 13 | Select & copy | Drag-select + **Ctrl+Shift+C** / right-click | Uses the terminal's native selection, copy, and context menu (mouse not captured). |
+| 14 | Quit | **Ctrl+C** | Exits immediately and restores the terminal. |
+| 15 | Env config | `.env` / environment | Presets provider, model, key, approvals, sandbox. |

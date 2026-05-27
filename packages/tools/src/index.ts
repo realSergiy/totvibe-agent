@@ -6,14 +6,16 @@ import { z } from "zod";
 
 export interface ToolOptions {
   net?: NetPolicy;
+  sandbox?: boolean;
 }
 
 export function createBuiltinTools(sandbox: SandboxState, options: ToolOptions = {}): AnyToolDefinition[] {
   const net: NetPolicy = options.net ?? "none";
+  const sandboxEnabled = options.sandbox ?? true;
 
   const resolveInSandbox = (cwd: string, path: string): string => {
     const target = resolve(cwd, path);
-    if (!sandbox.allowsWrite(target)) {
+    if (sandboxEnabled && !sandbox.allowsWrite(target)) {
       throw new Error(`Path outside the sandbox's writable dirs: ${path}. Ask the user to /grant it.`);
     }
     return target;
@@ -71,7 +73,7 @@ export function createBuiltinTools(sandbox: SandboxState, options: ToolOptions =
       command: z.string().describe("Shell command to execute"),
     }),
     execute: async ({ command }, { cwd, signal }) => {
-      const result = await runSandboxedBash(command, sandbox, cwd, net, signal);
+      const result = await runSandboxedBash(command, sandbox, cwd, net, signal, sandboxEnabled);
       const body = [result.stdout, result.stderr].filter(Boolean).join("\n").trimEnd();
       const tag = result.sandboxed ? "" : " (unsandboxed)";
       return `exit ${result.exitCode}${tag}\n${body}`.trimEnd();

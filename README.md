@@ -14,14 +14,16 @@ No key needed up front — the connect dialog (below) walks you through it on fi
 ## Run
 
 ```bash
-bun start
+bun start          # or: just totvibe
 ```
 
 Type a request and press Enter. `read_file` and `list_dir` run automatically; `write_file` and `run_bash` ask for approval (`y` to run, `n` to skip). Ctrl+C quits. The status bar shows the active `provider:model`, connection state, and sandbox status.
 
+The sandbox is **on by default**, confining everything to the working directory. Pass `--no-sandbox` (e.g. `bun start --no-sandbox` or `just totvibe --no-sandbox`) to run without it; `bun start --help` lists every flag.
+
 ### Sandboxing (Linux)
 
-`run_bash` runs each command through a Landlock + namespace sandbox helper (`bun run build:sandbox` to build it). The command — and any process it spawns — can only:
+The sandbox is **on by default** — file tools and `run_bash` are confined to the working directory unless you pass `--no-sandbox`. `run_bash` runs each command through a Landlock + namespace sandbox helper (`bun run build:sandbox` to build it). The command — and any process it spawns — can only:
 
 - **read** system dirs (`/usr`, `/bin`, `/etc`, `/proc`, …);
 - **read/write** the working directory, `/tmp`, and `/dev`;
@@ -33,14 +35,17 @@ The helper binary is optional: without it, `run_bash` falls back to an unsandbox
 
 ### Connect dialog / model switcher
 
-The dialog opens automatically when the active provider has no key, and any time with **Ctrl+P**. It lists every provider with its connection status and selected model:
+The dialog opens automatically when no provider has a key, and any time you type **`/provider`** in the input box. It lists every provider with its connection status and selected model:
 
 - **↑ / ↓** — highlight a provider
+- **t** — test the connection (probes the provider's `/models` with the stored key) and report OK / key rejected / unreachable
 - **o** — open that provider's API-key page in your browser
-- **k** — paste an API key, then Enter to save it (written to `.env` and applied live)
+- **k** — paste an API key, then Enter to verify and save it (checked against the provider's `/models` endpoint; a rejected key keeps you on the field to retry, then it's written to `.env` and applied live)
 - **m** — edit the model id, then Enter to switch to it
 - **Enter** — use the highlighted provider/model
 - **Esc** — close (once a provider is connected)
+
+The status bar reflects real connectivity for the active provider: it probes `/models` on launch and after each change, showing `● ok`, `◌ checking…`, `✗ key rejected`, or `● unreachable`.
 
 ## Configuration
 
@@ -48,24 +53,34 @@ Read from the environment (Bun loads `.env` automatically):
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `AI_PROVIDER` | `anthropic` | `anthropic`, `openai`, or one of the OpenAI-compatible providers below |
+| `AI_PROVIDER` | `qwen` | One of the OpenAI-compatible providers below |
 | `MODEL` | per provider | Override the model id |
 | `<PROVIDER>_API_KEY` | — | Key for the selected provider (see table below) |
 | `AUTO_APPROVE` | unset | Set to `1` to skip approval prompts |
 | `TOTVIBE_SANDBOX_NET` | `none` | `inherit` to let sandboxed `run_bash` use the network |
 | `TOTVIBE_SANDBOX_BIN` | — | Override the path to the sandbox helper binary |
 
+Command-line flags (parsed with [citty](https://github.com/unjs/citty)) — run `bun start --help` for the full list:
+
+| Flag | Default | Purpose |
+|---|---|---|
+| `--no-sandbox` | sandbox on | Start without the filesystem/network sandbox |
+
 ## Connecting other provider-models
 
-Easiest path is the connect dialog above (**Ctrl+P**) — it opens the key page and saves the key for you. To configure by hand instead: `anthropic` and `openai` are wired natively; the providers below are OpenAI-compatible (via `@ai-sdk/openai-compatible`) — set `AI_PROVIDER`, its key, and optionally a `MODEL`. No code change needed.
+Easiest path is the connect dialog above (type **`/provider`**) — it opens the key page and saves the key for you. To configure by hand instead: every provider below is OpenAI-compatible (via `@ai-sdk/openai-compatible`) — set `AI_PROVIDER`, its key, and optionally a `MODEL`. No code change needed.
 
 | `AI_PROVIDER` | Model | API key env | Base URL | Get a key |
 |---|---|---|---|---|
 | `qwen` | Alibaba `qwen3.7-max` | `DASHSCOPE_API_KEY` | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | [Model Studio](https://www.alibabacloud.com/help/en/model-studio/get-api-key) |
-| `glm` | Z.ai `glm-5.1` | `ZAI_API_KEY` | `https://api.z.ai/api/paas/v4` | [Z.ai](https://z.ai/manage-apikey/apikey-list) |
+| `glm` | Z.ai `glm-5.1` (GLM Coding Plan, Global) | `ZAI_API_KEY` | `https://api.z.ai/api/coding/paas/v4` | [Z.ai](https://z.ai/manage-apikey/apikey-list) |
+| `glm-cn` | Zhipu `glm-5.1` (GLM Coding Plan, China) | `ZHIPU_API_KEY` | `https://open.bigmodel.cn/api/coding/paas/v4` | [Zhipu BigModel](https://open.bigmodel.cn/usercenter/apikeys) |
 | `kimi` | Moonshot `kimi-k2.6` | `MOONSHOT_API_KEY` | `https://api.moonshot.ai/v1` | [Kimi platform](https://platform.moonshot.ai/console/api-keys) |
 | `mimo` | Xiaomi `mimo-v2.5-pro` | `MIMO_API_KEY` | `https://api.xiaomimimo.com/v1` | [MiMo platform](https://platform.xiaomimimo.com) |
 | `deepseek` | DeepSeek `deepseek-v4-pro` | `DEEPSEEK_API_KEY` | `https://api.deepseek.com/v1` | [DeepSeek platform](https://platform.deepseek.com/api_keys) |
+| `gemini` | Google `gemini-3.5-flash` | `GEMINI_API_KEY` | `https://generativelanguage.googleapis.com/v1beta/openai` | [Google AI Studio](https://aistudio.google.com/apikey) |
+| `minimax` | MiniMax `minimax-m2.7` | `MINIMAX_API_KEY` | `https://api.minimax.io/v1` | [MiniMax platform](https://www.minimax.io/platform/user-center/basic-information/interface-key) |
+| `mistral` | Mistral `mistral-large-3` | `MISTRAL_API_KEY` | `https://api.mistral.ai/v1` | [Mistral console](https://console.mistral.ai/api-keys) |
 
 The model id in the table is the default for that provider; override it with `MODEL` to match the provider's current catalog. Example — DeepSeek:
 
@@ -134,6 +149,6 @@ flowchart TD
 | `@totvibe/sandbox` | The `SandboxState` allow-list + Rust Landlock/namespace helper for `run_bash` | New default paths; per-tool network policy; another OS backend |
 | `@totvibe/tui` | The OpenTUI React view + entry + provider config | New components; the view only subscribes to events, it never drives the loop |
 
-The loop is provider-agnostic: the model is injected, so swapping `claude-opus-4-7` for another model or provider is a config change, not a code change.
+The loop is provider-agnostic: the model is injected, so swapping `qwen3.7-max` for another model or provider is a config change, not a code change.
 
 See [`docs/`](./docs) for the full design and phased extension plan.

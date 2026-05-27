@@ -59,22 +59,26 @@ export function helperPath(): string {
 }
 
 export interface SandboxStatus {
+  enabled: boolean;
   available: boolean;
   landlock: boolean;
   net: NetPolicy;
   degraded: boolean;
 }
 
-export async function probeSandbox(net: NetPolicy): Promise<SandboxStatus> {
+export async function probeSandbox(net: NetPolicy, enabled = true): Promise<SandboxStatus> {
+  if (!enabled) {
+    return { enabled: false, available: false, landlock: false, net, degraded: false };
+  }
   const binary = helperPath();
   if (!(await Bun.file(binary).exists())) {
-    return { available: false, landlock: false, net, degraded: true };
+    return { enabled: true, available: false, landlock: false, net, degraded: true };
   }
   const probe = Bun.spawn([binary, "--probe"], { stdout: "pipe", stderr: "ignore" });
   const output = await new Response(probe.stdout).text();
   await probe.exited;
   const landlock = output.includes("landlock=ok");
-  return { available: true, landlock, net, degraded: !landlock };
+  return { enabled: true, available: true, landlock, net, degraded: !landlock };
 }
 
 export interface BashResult {
@@ -90,9 +94,10 @@ export async function runSandboxedBash(
   cwd: string,
   net: NetPolicy,
   signal?: AbortSignal,
+  enabled = true,
 ): Promise<BashResult> {
   const binary = helperPath();
-  const sandboxed = await Bun.file(binary).exists();
+  const sandboxed = enabled && (await Bun.file(binary).exists());
   const child = sandboxed
     ? Bun.spawn([binary, command], {
         cwd,

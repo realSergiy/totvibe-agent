@@ -1,3 +1,4 @@
+import { Banner } from "./Banner";
 import type { DisplayMessage, Role } from "./state";
 
 const ROLE_COLOR: Record<Role, string> = {
@@ -19,6 +20,7 @@ export function Conversation({ messages }: { messages: DisplayMessage[] }) {
       stickyScroll
       stickyStart="bottom"
     >
+      {messages.length === 0 && <Banner />}
       {messages.map((message) => (
         <box key={message.id} style={{ flexDirection: "column" }}>
           <text fg={ROLE_COLOR[message.role]}>{ROLE_LABEL[message.role]}</text>

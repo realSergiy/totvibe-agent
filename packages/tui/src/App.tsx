@@ -9,12 +9,13 @@ import {
   findProvider,
   isConnected,
   PROVIDERS,
+  validateApiKey,
   type InitialConfig,
   type ProviderInfo,
 } from "./config";
 import { saveEnvVars } from "./actions";
 import { formatInput, initialState, reducer } from "./state";
-import { StatusBar } from "./StatusBar";
+import { StatusBar, type ConnectionStatus } from "./StatusBar";
 import { Conversation } from "./Conversation";
 import { InputBar } from "./InputBar";
 import { ProviderDialog } from "./ProviderDialog";
@@ -25,13 +26,40 @@ export function App({ config }: { config: InitialConfig }) {
   const sessionRef = useRef<Session>(createSession());
   const resolveApprovalRef = useRef<((granted: boolean) => void) | null>(null);
 
-  const [providerName, setProviderName] = useState(config.providerName);
-  const [modelId, setModelId] = useState(config.modelId);
+  const configuredProvider = findProvider(config.providerName) as ProviderInfo;
+  const initialProvider = isConnected(configuredProvider)
+    ? configuredProvider
+    : (PROVIDERS.find(isConnected) ?? configuredProvider);
+
+  const [providerName, setProviderName] = useState(initialProvider.name);
+  const [modelId, setModelId] = useState(
+    initialProvider === configuredProvider ? config.modelId : initialProvider.defaultModel,
+  );
   const [revision, setRevision] = useState(0);
 
   const provider = findProvider(providerName) as ProviderInfo;
   const connected = isConnected(provider);
   const [dialogOpen, setDialogOpen] = useState(!connected);
+  const [connection, setConnection] = useState<ConnectionStatus>(
+    connected ? "checking" : "no-key",
+  );
+
+  useEffect(() => {
+    const apiKey = process.env[provider.apiKeyEnv]?.trim();
+    if (!apiKey) {
+      setConnection("no-key");
+      return;
+    }
+    let cancelled = false;
+    setConnection("checking");
+    void validateApiKey(provider, apiKey).then((check) => {
+      if (cancelled) return;
+      setConnection(check.ok ? "ok" : check.rejected ? "rejected" : "unreachable");
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [providerName, provider.apiKeyEnv, revision]);
 
   const model = useMemo(
     () => buildModel(provider, modelId),
@@ -51,17 +79,25 @@ export function App({ config }: { config: InitialConfig }) {
   const [sandboxStatus, setSandboxStatus] = useState<SandboxStatus | null>(null);
 
   useEffect(() => {
-    void probeSandbox(config.sandboxNet).then(setSandboxStatus);
-  }, [config.sandboxNet]);
+    void probeSandbox(config.sandboxNet, config.sandbox).then(setSandboxStatus);
+  }, [config.sandboxNet, config.sandbox]);
 
   const tools = useMemo(() => {
     const middleware = compose(approvalGate({ approve, autoApprove: config.autoApprove }));
-    const builtinTools = createBuiltinTools(sandboxRef.current, { net: config.sandboxNet });
+    const builtinTools = createBuiltinTools(sandboxRef.current, {
+      net: config.sandboxNet,
+      sandbox: config.sandbox,
+    });
     return toModelTools(builtinTools, { cwd: config.cwd }, middleware);
-  }, [approve, config.autoApprove, config.cwd, config.sandboxNet]);
+  }, [approve, config.autoApprove, config.cwd, config.sandboxNet, config.sandbox]);
 
   const onSubmit = useCallback(
     async (text: string) => {
+      if (/^\/provider(s)?\s*$/.test(text.trim())) {
+        setDialogOpen(true);
+        return;
+      }
+
       const grant = text.match(/^\/grant\s+(.+)$/);
       if (grant) {
         const path = grant[1]!.trim();
@@ -107,10 +143,6 @@ export function App({ config }: { config: InitialConfig }) {
       process.exit(0);
     }
     if (dialogOpen) return;
-    if (key.name === "p" && key.ctrl) {
-      setDialogOpen(true);
-      return;
-    }
     if (resolveApprovalRef.current) {
       if (key.name === "y") resolveApproval(true);
       else if (key.name === "n" || key.name === "escape") resolveApproval(false);
@@ -122,7 +154,7 @@ export function App({ config }: { config: InitialConfig }) {
       <StatusBar
         provider={provider}
         modelId={modelId}
-        connected={connected}
+        connection={connection}
         cwd={config.cwd}
         status={state.status}
         sandbox={sandboxStatus}

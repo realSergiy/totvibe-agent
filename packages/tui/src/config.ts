@@ -1,44 +1,20 @@
-import { anthropic } from "@ai-sdk/anthropic";
-import { openai } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { LanguageModel } from "ai";
-
-export type ProviderKind = "native" | "openai-compatible";
 
 export interface ProviderInfo {
   name: string;
   label: string;
-  kind: ProviderKind;
   apiKeyEnv: string;
   defaultModel: string;
   keyUrl: string;
   keyHint: string;
-  baseURL?: string;
+  baseURL: string;
 }
 
 export const PROVIDERS: ProviderInfo[] = [
   {
-    name: "anthropic",
-    label: "Anthropic Claude",
-    kind: "native",
-    apiKeyEnv: "ANTHROPIC_API_KEY",
-    defaultModel: "claude-opus-4-7",
-    keyUrl: "https://console.anthropic.com/settings/keys",
-    keyHint: "Anthropic Console → API keys.",
-  },
-  {
-    name: "openai",
-    label: "OpenAI",
-    kind: "native",
-    apiKeyEnv: "OPENAI_API_KEY",
-    defaultModel: "gpt-5.1",
-    keyUrl: "https://platform.openai.com/api-keys",
-    keyHint: "OpenAI dashboard → API keys.",
-  },
-  {
     name: "qwen",
     label: "Alibaba Qwen",
-    kind: "openai-compatible",
     apiKeyEnv: "DASHSCOPE_API_KEY",
     defaultModel: "qwen3.7-max",
     baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
@@ -47,18 +23,25 @@ export const PROVIDERS: ProviderInfo[] = [
   },
   {
     name: "glm",
-    label: "Z.ai GLM",
-    kind: "openai-compatible",
+    label: "Z.ai GLM Coding Plan (Global)",
     apiKeyEnv: "ZAI_API_KEY",
     defaultModel: "glm-5.1",
-    baseURL: "https://api.z.ai/api/paas/v4",
+    baseURL: "https://api.z.ai/api/coding/paas/v4",
     keyUrl: "https://z.ai/manage-apikey/apikey-list",
-    keyHint: "Z.ai → API keys.",
+    keyHint: "Z.ai → API keys (GLM Coding Plan).",
+  },
+  {
+    name: "glm-cn",
+    label: "Zhipu GLM Coding Plan (China)",
+    apiKeyEnv: "ZHIPU_API_KEY",
+    defaultModel: "glm-5.1",
+    baseURL: "https://open.bigmodel.cn/api/coding/paas/v4",
+    keyUrl: "https://open.bigmodel.cn/usercenter/apikeys",
+    keyHint: "Zhipu BigModel → API keys (GLM Coding Plan).",
   },
   {
     name: "kimi",
     label: "Moonshot Kimi",
-    kind: "openai-compatible",
     apiKeyEnv: "MOONSHOT_API_KEY",
     defaultModel: "kimi-k2.6",
     baseURL: "https://api.moonshot.ai/v1",
@@ -68,7 +51,6 @@ export const PROVIDERS: ProviderInfo[] = [
   {
     name: "mimo",
     label: "Xiaomi MiMo",
-    kind: "openai-compatible",
     apiKeyEnv: "MIMO_API_KEY",
     defaultModel: "mimo-v2.5-pro",
     baseURL: "https://api.xiaomimimo.com/v1",
@@ -78,12 +60,38 @@ export const PROVIDERS: ProviderInfo[] = [
   {
     name: "deepseek",
     label: "DeepSeek",
-    kind: "openai-compatible",
     apiKeyEnv: "DEEPSEEK_API_KEY",
     defaultModel: "deepseek-v4-pro",
     baseURL: "https://api.deepseek.com/v1",
     keyUrl: "https://platform.deepseek.com/api_keys",
     keyHint: "DeepSeek platform → API keys.",
+  },
+  {
+    name: "gemini",
+    label: "Google Gemini",
+    apiKeyEnv: "GEMINI_API_KEY",
+    defaultModel: "gemini-3.5-flash",
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
+    keyUrl: "https://aistudio.google.com/apikey",
+    keyHint: "Google AI Studio → API keys.",
+  },
+  {
+    name: "minimax",
+    label: "MiniMax",
+    apiKeyEnv: "MINIMAX_API_KEY",
+    defaultModel: "minimax-m2.7",
+    baseURL: "https://api.minimax.io/v1",
+    keyUrl: "https://www.minimax.io/platform/user-center/basic-information/interface-key",
+    keyHint: "MiniMax platform → API keys.",
+  },
+  {
+    name: "mistral",
+    label: "Mistral AI",
+    apiKeyEnv: "MISTRAL_API_KEY",
+    defaultModel: "mistral-large-3",
+    baseURL: "https://api.mistral.ai/v1",
+    keyUrl: "https://console.mistral.ai/api-keys",
+    keyHint: "Mistral console → API keys.",
   },
 ];
 
@@ -98,6 +106,7 @@ export interface InitialConfig {
   system: string;
   cwd: string;
   autoApprove: boolean;
+  sandbox: boolean;
   sandboxNet: "none" | "inherit";
 }
 
@@ -109,20 +118,49 @@ export function isConnected(provider: ProviderInfo): boolean {
   return Boolean(process.env[provider.apiKeyEnv]?.trim());
 }
 
-export function buildModel(provider: ProviderInfo, modelId: string): LanguageModel {
-  if (provider.kind === "native") {
-    return provider.name === "openai" ? openai(modelId) : anthropic(modelId);
+export interface ApiKeyCheck {
+  ok: boolean;
+  rejected: boolean;
+  reason?: string;
+}
+
+export async function validateApiKey(
+  provider: ProviderInfo,
+  apiKey: string,
+): Promise<ApiKeyCheck> {
+  const url = `${provider.baseURL.replace(/\/+$/, "")}/models`;
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (response.status === 401 || response.status === 403) {
+      return { ok: false, rejected: true, reason: `rejected (HTTP ${response.status})` };
+    }
+    if (response.ok) return { ok: true, rejected: false };
+    return { ok: false, rejected: false, reason: `HTTP ${response.status}` };
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "network error";
+    return { ok: false, rejected: false, reason };
   }
+}
+
+export function buildModel(provider: ProviderInfo, modelId: string): LanguageModel {
   const openaiCompatible = createOpenAICompatible({
     name: provider.name,
-    baseURL: provider.baseURL ?? "",
+    baseURL: provider.baseURL,
     apiKey: process.env[provider.apiKeyEnv],
   });
   return openaiCompatible(modelId);
 }
 
-export function loadInitialConfig(): InitialConfig {
-  const providerName = (process.env.AI_PROVIDER ?? "anthropic").toLowerCase();
+export interface CliOptions {
+  sandbox: boolean;
+}
+
+export function loadInitialConfig(cli: CliOptions): InitialConfig {
+  const providerName = (process.env.AI_PROVIDER ?? "qwen").toLowerCase();
   const provider = findProvider(providerName);
   if (!provider) {
     const known = PROVIDERS.map((entry) => entry.name).join(", ");
@@ -134,6 +172,7 @@ export function loadInitialConfig(): InitialConfig {
     system: SYSTEM_PROMPT,
     cwd: process.cwd(),
     autoApprove: process.env.AUTO_APPROVE === "1",
+    sandbox: cli.sandbox,
     sandboxNet: process.env.TOTVIBE_SANDBOX_NET === "inherit" ? "inherit" : "none",
   };
 }
