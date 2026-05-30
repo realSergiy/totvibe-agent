@@ -9,7 +9,7 @@ export interface ToolContext {
   signal?: AbortSignal;
 }
 
-export interface ToolDefinition<Input = unknown> {
+export interface ToolDef<Input = unknown> {
   name: string;
   description: string;
   inputSchema: ZodType<Input>;
@@ -17,24 +17,24 @@ export interface ToolDefinition<Input = unknown> {
   execute: (input: Input, context: ToolContext) => Promise<string>;
 }
 
-export type AnyToolDefinition = ToolDefinition<any>;
+export type AnyToolDef = ToolDef<any>;
 
-export function defineTool<Input>(definition: ToolDefinition<Input>): ToolDefinition<Input> {
+export function defineTool<Input>(definition: ToolDef<Input>): ToolDef<Input> {
   return definition;
 }
 
-export function isReadOnly(definition: AnyToolDefinition): boolean {
+export function isReadOnly(definition: AnyToolDef): boolean {
   return definition.risk === "read";
 }
 
 export function findToolDefinition(
-  definitions: AnyToolDefinition[],
+  definitions: AnyToolDef[],
   name: string,
-): AnyToolDefinition | undefined {
+): AnyToolDef | undefined {
   return definitions.find((definition) => definition.name === name);
 }
 
-export function buildModelToolSet(definitions: AnyToolDefinition[]): ToolSet {
+export function buildModelToolSet(definitions: AnyToolDef[]): ToolSet {
   const toolSet: ToolSet = {};
   for (const definition of definitions) {
     toolSet[definition.name] = tool({
@@ -59,7 +59,7 @@ export interface ToolCallOutcome {
 }
 
 export async function executeToolCall(
-  definitions: AnyToolDefinition[],
+  definitions: AnyToolDef[],
   call: ToolCallRequest,
   context: ToolContext,
   middleware: Middleware,
@@ -79,16 +79,28 @@ export async function executeToolCall(
     input: call.input,
   };
   try {
-    const text = await middleware(invocation, () => definition.execute(call.input, context));
-    return { toolCallId: call.toolCallId, toolName: call.toolName, text, isError: false };
+    const text = await middleware(invocation, () =>
+      definition.execute(call.input, context),
+    );
+    return {
+      toolCallId: call.toolCallId,
+      toolName: call.toolName,
+      text,
+      isError: false,
+    };
   } catch (error) {
     const text = error instanceof Error ? error.message : String(error);
-    return { toolCallId: call.toolCallId, toolName: call.toolName, text, isError: true };
+    return {
+      toolCallId: call.toolCallId,
+      toolName: call.toolName,
+      text,
+      isError: true,
+    };
   }
 }
 
 export async function runToolCalls(
-  definitions: AnyToolDefinition[],
+  definitions: AnyToolDef[],
   calls: ToolCallRequest[],
   context: ToolContext,
   middleware: Middleware,
@@ -101,9 +113,14 @@ export async function runToolCalls(
       const batchStart = index;
       const batch: Array<Promise<ToolCallOutcome>> = [];
       while (index < calls.length) {
-        const next = findToolDefinition(definitions, calls[index]!.toolName);
-        if (!next || !isReadOnly(next)) break;
-        batch.push(executeToolCall(definitions, calls[index]!, context, middleware));
+        const nextToolDef = findToolDefinition(
+          definitions,
+          calls[index]!.toolName,
+        );
+        if (!nextToolDef || !isReadOnly(nextToolDef)) break;
+        batch.push(
+          executeToolCall(definitions, calls[index]!, context, middleware),
+        );
         index += 1;
       }
       const settled = await Promise.all(batch);
@@ -111,9 +128,15 @@ export async function runToolCalls(
         outcomes[batchStart + offset] = outcome;
       });
     } else {
-      outcomes[index] = await executeToolCall(definitions, calls[index]!, context, middleware);
+      outcomes[index] = await executeToolCall(
+        definitions,
+        calls[index]!,
+        context,
+        middleware,
+      );
       index += 1;
     }
   }
   return outcomes;
 }
+

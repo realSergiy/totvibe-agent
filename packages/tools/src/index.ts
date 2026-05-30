@@ -1,5 +1,9 @@
-import { defineTool, type AnyToolDefinition } from "@totvibe/core";
-import { runSandboxedBash, type NetPolicy, type SandboxState } from "@totvibe/sandbox";
+import { defineTool, type AnyToolDef } from "@totvibe/core";
+import {
+  runSandboxedBash,
+  type NetPolicy,
+  type SandboxState,
+} from "@totvibe/sandbox";
 import { realpath } from "node:fs/promises";
 import { readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -17,7 +21,11 @@ let spillCounter = 0;
 async function capOutput(text: string, label: string): Promise<string> {
   if (text.length <= OUTPUT_CHAR_CAP) return text;
   spillCounter += 1;
-  const spillPath = join(tmpdir(), "totvibe", `${label}-${process.pid}-${spillCounter}.txt`);
+  const spillPath = join(
+    tmpdir(),
+    "totvibe",
+    `${label}-${process.pid}-${spillCounter}.txt`,
+  );
   await Bun.write(spillPath, text);
   const head = text.slice(0, OUTPUT_CHAR_CAP);
   return `${head}\n\n[output truncated: showed ${OUTPUT_CHAR_CAP} of ${text.length} chars; full output saved to ${spillPath} — read_file it if you need the rest]`;
@@ -39,19 +47,29 @@ async function canonicalizePath(target: string): Promise<string> {
   }
 }
 
-export function createBuiltinTools(sandbox: SandboxState, options: ToolOptions = {}): AnyToolDefinition[] {
+export function createBuiltinTools(
+  sandbox: SandboxState,
+  options: ToolOptions = {},
+): AnyToolDef[] {
   const net: NetPolicy = options.net ?? "none";
   const sandboxEnabled = options.sandbox ?? true;
 
-  const resolveInSandbox = async (cwd: string, path: string): Promise<string> => {
+  const resolveInSandbox = async (
+    cwd: string,
+    path: string,
+  ): Promise<string> => {
     const target = resolve(cwd, path);
     if (!sandboxEnabled) return target;
     if (!sandbox.allowsWrite(target)) {
-      throw new Error(`Path outside the sandbox's writable dirs: ${path}. Ask the user to /grant it.`);
+      throw new Error(
+        `Path outside the sandbox's writable dirs: ${path}. Ask the user to /grant it.`,
+      );
     }
     const canonical = await canonicalizePath(target);
     if (!sandbox.allowsWrite(canonical)) {
-      throw new Error(`Path escapes the sandbox via a symlink: ${path}. Ask the user to /grant it.`);
+      throw new Error(
+        `Path escapes the sandbox via a symlink: ${path}. Ask the user to /grant it.`,
+      );
     }
     return target;
   };
@@ -75,10 +93,15 @@ export function createBuiltinTools(sandbox: SandboxState, options: ToolOptions =
     description: "List the entries of a directory inside the sandbox.",
     risk: "read",
     inputSchema: z.object({
-      path: z.string().default(".").describe("Directory path relative to the working directory"),
+      path: z
+        .string()
+        .default(".")
+        .describe("Directory path relative to the working directory"),
     }),
     execute: async ({ path }, { cwd }) => {
-      const entries = await readdir(await resolveInSandbox(cwd, path), { withFileTypes: true });
+      const entries = await readdir(await resolveInSandbox(cwd, path), {
+        withFileTypes: true,
+      });
       const names = entries
         .map((entry) => (entry.isDirectory() ? `${entry.name}/` : entry.name))
         .sort();
@@ -102,18 +125,33 @@ export function createBuiltinTools(sandbox: SandboxState, options: ToolOptions =
 
   const runBash = defineTool({
     name: "run_bash",
-    description: "Run a shell command in a Landlock+namespace sandbox and return its combined output.",
+    description:
+      "Run a shell command in a Landlock+namespace sandbox and return its combined output.",
     risk: "mutate",
     inputSchema: z.object({
       command: z.string().describe("Shell command to execute"),
     }),
     execute: async ({ command }, { cwd, signal }) => {
-      const result = await runSandboxedBash(command, sandbox, cwd, net, signal, sandboxEnabled);
-      const body = [result.stdout, result.stderr].filter(Boolean).join("\n").trimEnd();
+      const result = await runSandboxedBash(
+        command,
+        sandbox,
+        cwd,
+        net,
+        signal,
+        sandboxEnabled,
+      );
+      const body = [result.stdout, result.stderr]
+        .filter(Boolean)
+        .join("\n")
+        .trimEnd();
       const tag = result.sandboxed ? "" : " (unsandboxed)";
-      return await capOutput(`exit ${result.exitCode}${tag}\n${body}`.trimEnd(), "run_bash");
+      return await capOutput(
+        `exit ${result.exitCode}${tag}\n${body}`.trimEnd(),
+        "run_bash",
+      );
     },
   });
 
   return [readFile, listDir, writeFile, runBash];
 }
+

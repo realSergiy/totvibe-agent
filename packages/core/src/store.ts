@@ -39,7 +39,7 @@ export async function loadSessionMessages(dir: string, sessionId: string): Promi
 }
 
 export async function findLatestSessionId(dir: string): Promise<string | undefined> {
-  let entries: Array<{ name: string; time: number }>;
+  let entries: Array<{ name: string; fileModTime: number }>;
   try {
     const names = await readdir(dir);
     entries = await Promise.all(
@@ -47,12 +47,12 @@ export async function findLatestSessionId(dir: string): Promise<string | undefin
         .filter((name) => name.endsWith(".jsonl"))
         .map(async (name) => {
           const stat = await Bun.file(join(dir, name)).stat();
-          return { name: name.slice(0, -".jsonl".length), time: stat.mtimeMs };
+          return { name: name.slice(0, -".jsonl".length), fileModTime: stat.mtimeMs };
         }),
     );
   } catch {
     return undefined;
   }
   if (entries.length === 0) return undefined;
-  return entries.sort((a, b) => b.time - a.time)[0]!.name;
+  return entries.sort((a, b) => b.fileModTime - a.fileModTime)[0]!.name;
 }

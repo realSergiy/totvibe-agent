@@ -6,7 +6,7 @@ import {
   defineTool,
   executeToolCall,
   runToolCalls,
-  type AnyToolDefinition,
+  type AnyToolDef,
   type ToolContext,
 } from "./tool";
 
@@ -16,7 +16,7 @@ function makeTool(
   name: string,
   risk: "read" | "mutate",
   execute: (input: { value?: string }) => Promise<string>,
-): AnyToolDefinition {
+): AnyToolDef {
   return defineTool({
     name,
     description: name,
@@ -26,7 +26,8 @@ function makeTool(
   });
 }
 
-const delay = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+const delay = (ms: number) =>
+  new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 test("buildModelToolSet exposes schemas only, never an executor", () => {
   const toolSet = buildModelToolSet([makeTool("a", "read", async () => "x")]);
@@ -35,7 +36,11 @@ test("buildModelToolSet exposes schemas only, never an executor", () => {
 });
 
 test("executeToolCall runs through middleware and returns text", async () => {
-  const tool = makeTool("read_thing", "read", async (input) => `got ${JSON.stringify(input)}`);
+  const tool = makeTool(
+    "read_thing",
+    "read",
+    async (input) => `got ${JSON.stringify(input)}`,
+  );
   const outcome = await executeToolCall(
     [tool],
     { toolCallId: "1", toolName: "read_thing", input: { value: "hi" } },
@@ -120,3 +125,4 @@ test("runToolCalls runs read-only calls in parallel and serializes mutations", a
   );
   expect(order.indexOf("end wa")).toBeLessThan(order.indexOf("start wb"));
 });
+

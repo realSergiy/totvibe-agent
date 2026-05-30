@@ -9,7 +9,7 @@ interface ModelMetadata {
   maxOutputTokens: number;
   costPerMTokInput: number;
   costPerMTokOutput: number;
-  reasoning: boolean;
+  supportsReasoning: boolean;
 }
 
 export interface ProviderInfo {
@@ -32,7 +32,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
     keyUrl: "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
     keyHint: "Alibaba Cloud Model Studio → API keys.",
-    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 1.6, costPerMTokOutput: 6.4, reasoning: false },
+    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 1.6, costPerMTokOutput: 6.4, supportsReasoning: false },
   },
   {
     name: "glm",
@@ -42,7 +42,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://api.z.ai/api/coding/paas/v4",
     keyUrl: "https://z.ai/manage-apikey/apikey-list",
     keyHint: "Z.ai → API keys (GLM Coding Plan).",
-    metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, reasoning: true },
+    metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
   },
   {
     name: "glm-cn",
@@ -52,7 +52,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://open.bigmodel.cn/api/coding/paas/v4",
     keyUrl: "https://open.bigmodel.cn/usercenter/apikeys",
     keyHint: "Zhipu BigModel → API keys (GLM Coding Plan).",
-    metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, reasoning: true },
+    metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
   },
   {
     name: "kimi",
@@ -62,7 +62,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://api.moonshot.ai/v1",
     keyUrl: "https://platform.moonshot.ai/console/api-keys",
     keyHint: "Moonshot / Kimi platform → API keys.",
-    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.5, reasoning: false },
+    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.5, supportsReasoning: false },
   },
   {
     name: "mimo",
@@ -72,7 +72,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://api.xiaomimimo.com/v1",
     keyUrl: "https://platform.xiaomimimo.com",
     keyHint: "Xiaomi MiMo platform → API keys.",
-    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, reasoning: false },
+    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, supportsReasoning: false },
   },
   {
     name: "deepseek",
@@ -82,7 +82,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://api.deepseek.com/v1",
     keyUrl: "https://platform.deepseek.com/api_keys",
     keyHint: "DeepSeek platform → API keys.",
-    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 0.5, costPerMTokOutput: 1.5, reasoning: true },
+    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 0.5, costPerMTokOutput: 1.5, supportsReasoning: true },
   },
   {
     name: "gemini",
@@ -92,7 +92,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
     keyUrl: "https://aistudio.google.com/apikey",
     keyHint: "Google AI Studio → API keys.",
-    metadata: { contextWindow: 1048576, maxOutputTokens: 65536, costPerMTokInput: 0.3, costPerMTokOutput: 2.5, reasoning: true },
+    metadata: { contextWindow: 1048576, maxOutputTokens: 65536, costPerMTokInput: 0.3, costPerMTokOutput: 2.5, supportsReasoning: true },
   },
   {
     name: "minimax",
@@ -102,7 +102,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://api.minimax.io/v1",
     keyUrl: "https://www.minimax.io/platform/user-center/basic-information/interface-key",
     keyHint: "MiniMax platform → API keys.",
-    metadata: { contextWindow: 245760, maxOutputTokens: 8192, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, reasoning: true },
+    metadata: { contextWindow: 245760, maxOutputTokens: 8192, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, supportsReasoning: true },
   },
   {
     name: "mistral",
@@ -112,7 +112,7 @@ export const PROVIDERS: ProviderInfo[] = [
     baseURL: "https://api.mistral.ai/v1",
     keyUrl: "https://console.mistral.ai/api-keys",
     keyHint: "Mistral console → API keys.",
-    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 2.0, costPerMTokOutput: 6.0, reasoning: false },
+    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 2.0, costPerMTokOutput: 6.0, supportsReasoning: false },
   },
 ];
 

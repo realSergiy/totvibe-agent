@@ -1,11 +1,17 @@
-import { streamText, type LanguageModel, type ModelMessage, type ToolResultPart, type ToolSet } from "ai";
+import {
+  streamText,
+  type LanguageModel,
+  type ModelMessage,
+  type ToolResultPart,
+  type ToolSet,
+} from "ai";
 import type { AgentEvent } from "./events";
 import type { Session } from "./session";
 import { passthrough, type Middleware } from "./pipeline";
 import {
   buildModelToolSet,
   runToolCalls,
-  type AnyToolDefinition,
+  type AnyToolDef,
   type ToolCallOutcome,
   type ToolCallRequest,
   type ToolContext,
@@ -15,7 +21,7 @@ export interface AgentDeps {
   model: LanguageModel;
   fallbackModel?: LanguageModel;
   system: string;
-  tools: AnyToolDefinition[];
+  tools: AnyToolDef[];
   middleware?: Middleware;
   cwd: string;
   maxSteps?: number;
@@ -60,14 +66,24 @@ export async function* runAgent(
 
     let turn: TurnResult;
     try {
-      turn = yield* streamModelTurn(deps.model, deps, session.messages, modelTools);
+      turn = yield* streamModelTurn(
+        deps.model,
+        deps,
+        session.messages,
+        modelTools,
+      );
     } catch (error) {
       if (!deps.fallbackModel) {
         yield { type: "error", error: describeError(error) };
         return;
       }
       try {
-        turn = yield* streamModelTurn(deps.fallbackModel, deps, session.messages, modelTools);
+        turn = yield* streamModelTurn(
+          deps.fallbackModel,
+          deps,
+          session.messages,
+          modelTools,
+        );
       } catch (fallbackError) {
         yield { type: "error", error: describeError(fallbackError) };
         return;
@@ -90,14 +106,29 @@ export async function* runAgent(
       return;
     }
 
-    const outcomes = await runToolCalls(deps.tools, turn.calls, toolContext, middleware);
+    const outcomes = await runToolCalls(
+      deps.tools,
+      turn.calls,
+      toolContext,
+      middleware,
+    );
     const toolMessage = buildToolMessage(outcomes);
     session.messages.push(toolMessage);
     for (const outcome of outcomes) {
       if (outcome.isError) {
-        yield { type: "tool_error", id: outcome.toolCallId, name: outcome.toolName, error: outcome.text };
+        yield {
+          type: "tool_error",
+          id: outcome.toolCallId,
+          name: outcome.toolName,
+          error: outcome.text,
+        };
       } else {
-        yield { type: "tool_result", id: outcome.toolCallId, name: outcome.toolName, output: outcome.text };
+        yield {
+          type: "tool_result",
+          id: outcome.toolCallId,
+          name: outcome.toolName,
+          output: outcome.text,
+        };
       }
     }
     yield { type: "message", message: toolMessage };
@@ -138,12 +169,23 @@ async function* streamModelTurn(
         yield { type: "reasoning", text: part.text };
         break;
       case "tool-call":
-        yield { type: "tool_call", id: part.toolCallId, name: part.toolName, input: part.input };
+        yield {
+          type: "tool_call",
+          id: part.toolCallId,
+          name: part.toolName,
+          input: part.input,
+        };
         break;
       case "error":
         throw toError(part.error);
       case "abort":
-        return { messages: [], finishReason: "aborted", calls: [], tokens: 0, aborted: true };
+        return {
+          messages: [],
+          finishReason: "aborted",
+          calls: [],
+          tokens: 0,
+          aborted: true,
+        };
     }
   }
 
@@ -160,7 +202,8 @@ async function* streamModelTurn(
     messages: response.messages,
     finishReason,
     calls,
-    tokens: usage.totalTokens ?? (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0),
+    tokens:
+      usage.totalTokens ?? (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0),
     aborted: false,
   };
 }
@@ -184,3 +227,4 @@ function describeError(error: unknown): string {
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
+

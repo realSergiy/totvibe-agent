@@ -78,7 +78,7 @@ function sandboxLabel(sandbox: SandboxStatus | null): string {
   if (!sandbox) return "sandbox: …";
   if (!sandbox.enabled) return "sandbox: off (--no-sandbox)";
   if (!sandbox.available) return "sandbox: off (run build:sandbox)";
-  if (!sandbox.landlock) return "sandbox: net-only (no landlock)";
+  if (!sandbox.hasLandlock) return "sandbox: net-only (no landlock)";
   return sandbox.net === "none" ? "sandbox: fs+net" : "sandbox: fs";
 }
 

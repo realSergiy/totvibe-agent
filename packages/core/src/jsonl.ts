@@ -3,16 +3,16 @@ import { dirname } from "node:path";
 
 export class JsonlLog {
   private writes: Promise<void> = Promise.resolve();
-  private directoryReady = false;
+  private isDirReady = false;
 
   constructor(private readonly path: string) {}
 
   append(record: unknown): void {
     const line = `${JSON.stringify(record)}\n`;
     this.writes = this.writes.then(async () => {
-      if (!this.directoryReady) {
+      if (!this.isDirReady) {
         await mkdir(dirname(this.path), { recursive: true });
-        this.directoryReady = true;
+        this.isDirReady = true;
       }
       await appendFile(this.path, line);
     });
@@ -37,3 +37,4 @@ export class JsonlLog {
     return records;
   }
 }
+
