@@ -14,7 +14,7 @@ export function InputBar({
       <input
         ref={inputRef}
         focused={!disabled}
-        placeholder={disabled ? "working… (Ctrl+C to quit)" : "Ask totvibe to do something…"}
+        placeholder={disabled ? "working… (Esc cancels · Ctrl+C quits)" : "Ask totvibe to do something…"}
         onSubmit={() => {
           if (disabled) return;
           const text = inputRef.current?.value.trim() ?? "";

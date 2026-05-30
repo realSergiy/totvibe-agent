@@ -1,6 +1,6 @@
 # totvibe
 
-A minimalist terminal coding assistant — a streaming tool-use loop wrapped in an [OpenTUI](https://opentui.com) TUI, on [Bun](https://bun.com), powered by the [Vercel AI SDK](https://ai-sdk.dev) v6.
+A minimalist terminal coding assistant — an owned, streaming tool-use loop wrapped in an [OpenTUI](https://opentui.com) TUI, on [Bun](https://bun.com), powered by the [Vercel AI SDK](https://ai-sdk.dev) v6.
 
 ## Setup
 
@@ -17,7 +17,7 @@ No key needed up front — the connect dialog (below) walks you through it on fi
 bun start          # or: just totvibe
 ```
 
-Type a request and press Enter. `read_file` and `list_dir` run automatically; `write_file` and `run_bash` ask for approval (`y` to run, `n` to skip). Ctrl+C quits. The status bar shows the active `provider:model`, connection state, and sandbox status.
+Type a request and press Enter. `read_file` and `list_dir` run automatically; `write_file` and `run_bash` ask for approval (`y` to run, `n` to skip). **Esc** cancels the running turn; **Ctrl+C** quits. The status bar shows the active `provider:model`, connection state, and sandbox status. Each turn is persisted append-only under `~/.totvibe/sessions`; resume with `--continue` (most recent) or `--resume <id>`.
 
 The sandbox is **on by default**, confining everything to the working directory. Pass `--no-sandbox` (e.g. `bun start --no-sandbox` or `just totvibe --no-sandbox`) to run without it; `bun start --help` lists every flag.
 
@@ -56,15 +56,22 @@ Read from the environment (Bun loads `.env` automatically):
 | `AI_PROVIDER` | `qwen` | One of the OpenAI-compatible providers below |
 | `MODEL` | per provider | Override the model id |
 | `<PROVIDER>_API_KEY` | — | Key for the selected provider (see table below) |
-| `AUTO_APPROVE` | unset | Set to `1` to skip approval prompts |
+| `AUTO_APPROVE` | unset | `1` enables Auto mode: auto-approve mutating tools **except** the absolute-deny list (`rm -rf /`, force-push, …) |
 | `TOTVIBE_SANDBOX_NET` | `none` | `inherit` to let sandboxed `run_bash` use the network |
 | `TOTVIBE_SANDBOX_BIN` | — | Override the path to the sandbox helper binary |
+| `TOTVIBE_MAX_STEPS` | `24` | Hard cap on model steps per turn |
+| `TOTVIBE_WALL_CLOCK_MS` | `600000` | Hard wall-clock cap per turn (ms) |
+| `TOTVIBE_TOKEN_BUDGET` | ctx × 8 | Hard token cap per turn |
+| `TOTVIBE_APPROVAL_TIMEOUT_MS` | `0` | Approval-prompt timeout (`0` = wait indefinitely) |
+| `TOTVIBE_DATA_DIR` | `~/.totvibe` | Where sessions + the approval/audit ledger are stored |
 
 Command-line flags (parsed with [citty](https://github.com/unjs/citty)) — run `bun start --help` for the full list:
 
 | Flag | Default | Purpose |
 |---|---|---|
 | `--no-sandbox` | sandbox on | Start without the filesystem/network sandbox |
+| `--resume <id>` | — | Resume a saved session by id (see `~/.totvibe/sessions`) |
+| `--continue` | off | Resume the most recently saved session |
 
 ## Connecting other provider-models
 
@@ -96,13 +103,13 @@ DASHSCOPE_API_KEY=sk-...
 # MODEL=qwen3.7-max
 ```
 
-To add another OpenAI-compatible provider, append one entry to the `OPENAI_COMPATIBLE` registry in `packages/tui/src/config.ts`.
+To add another OpenAI-compatible provider, append one entry (including its model metadata) to the `PROVIDERS` registry in `packages/tui/src/config.ts`.
 
 ## Architecture
 
 A Bun workspaces monorepo. Each package is one architectural concern, so each can evolve without touching the others.
 
-*How a request flows through the packages, and where the extension seams (tools, middleware) plug in.*
+*How a request flows through the packages, and where the extension seams (tools, policy middleware, persistence) plug in.*
 
 ```mermaid
 flowchart TD
@@ -115,14 +122,19 @@ flowchart TD
     end
     subgraph core["@totvibe/core · engine"]
       direction TB
-      Loop["runAgent (async generator)"]
-      Stream["streamText fullStream"]
-      Registry["toModelTools + compose"]
+      Loop["runAgent · owned loop"]
+      Stream["streamText · one model turn"]
+      Dispatch["runToolCalls<br/>reads parallel · writes serial"]
+      Bus["EventBus"]
+      Store["SessionStore · JSONL"]
       Loop --> Stream
-      Registry --> Loop
+      Loop --> Dispatch
+      Loop --> Bus
+      Bus -->|"message → persist"| Store
     end
-    subgraph safety["@totvibe/safety · interceptor"]
-      Gate["approvalGate middleware"]
+    subgraph safety["@totvibe/safety · policy"]
+      Gate["policyGate<br/>deny → mode → allow → ask"]
+      Ledger["AuditLedger · JSONL"]
     end
     subgraph tools["@totvibe/tools · values"]
       Builtins["read_file · list_dir<br/>write_file"]
@@ -132,20 +144,21 @@ flowchart TD
       Helper["Landlock + netns helper"]
     end
 
-    Input -->|user text| Loop
-    Stream -->|AgentEvent| Reducer
-    Registry --> Gate
-    Gate -->|read → allow · mutate → ask| Builtins
-    Gate -->|mutate → ask| Bash
-    Bash -->|spawn per call| Helper
-    Gate -.->|approval y/n| Render
+    Input -->|"user text"| Loop
+    Bus -->|"AgentEvent"| Reducer
+    Dispatch --> Gate
+    Gate -->|"read → allow · mutate → ask"| Builtins
+    Gate -->|"mutate → ask"| Bash
+    Gate -->|"decision → ledger"| Ledger
+    Bash -->|"spawn per call"| Helper
+    Gate -.->|"approval y/n"| Render
 ```
 
 | Package | Owns | Extend by |
 |---|---|---|
-| `@totvibe/core` | The pure `runAgent` async generator, the `AgentEvent` union, `Session` (with `cloneSession` for branching strategies), the value-typed tool registry, and `compose` for middleware | Adding event kinds; wrapping the loop in a reasoning strategy |
-| `@totvibe/tools` | The built-in tool *values* (`defineTool`) | Adding a tool — return it from `createBuiltinTools` |
-| `@totvibe/safety` | The tool-call interceptor (`approvalGate`) | Composing more middleware (e.g. a classifier) before the executor |
+| `@totvibe/core` | The owned `runAgent` loop, the `AgentEvent` union + `EventBus`, the append-only `SessionStore` (JSONL, resume-by-id), the value-typed tool registry, and `compose` for middleware | Adding event kinds; subscribing to the event stream; wrapping the loop in a reasoning strategy |
+| `@totvibe/tools` | The built-in tool *values* (`defineTool`), with token-capped output | Adding a tool — return it from `createBuiltinTools` |
+| `@totvibe/safety` | The policy engine (`policyGate`: precedence deny→mode→allow→ask + absolute-deny) and the append-only `AuditLedger` | Composing more middleware (e.g. a classifier) before the executor |
 | `@totvibe/sandbox` | The `SandboxState` allow-list + Rust Landlock/namespace helper for `run_bash` | New default paths; per-tool network policy; another OS backend |
 | `@totvibe/tui` | The OpenTUI React view + entry + provider config | New components; the view only subscribes to events, it never drives the loop |
 

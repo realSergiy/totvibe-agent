@@ -9,6 +9,7 @@
   "scripts": {
     "start": "bun run packages/tui/src/index.tsx",
     "typecheck": "tsc --noEmit",
+    "test": "bun test ./packages",
     "build:sandbox": "bash scripts/build-sandbox.sh"
   },
   "devDependencies": {

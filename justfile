@@ -5,6 +5,17 @@ default:
 totvibe *args:
     bun start {{args}}
 
+# Run the test suite (scoped to packages/ so reference_clones/ is never scanned)
+test:
+    bun test ./packages
+
+# Typecheck every workspace package
+typecheck:
+    bun run typecheck
+
+# Gate: typecheck then test
+check: typecheck test
+
 # Build the Linux Landlock + namespace sandbox helper (needs Rust)
 build-sandbox:
     bun run build:sandbox

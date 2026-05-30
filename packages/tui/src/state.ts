@@ -73,6 +73,7 @@ function applyEvent(state: AppState, event: AgentEvent): AppState {
     case "turn_start":
     case "reasoning":
     case "tool_result":
+    case "message":
       return state;
   }
 }
