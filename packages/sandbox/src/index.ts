@@ -16,39 +16,39 @@ const DEFAULT_READONLY = [
 const DEFAULT_READWRITE = ["/dev", "/tmp"];
 
 export class SandboxState {
-  private readwrite: Set<string>;
-  private readonlyPaths: Set<string>;
+  private readWritePaths: Set<string>;
+  private readOnlyPaths: Set<string>;
 
   constructor(cwd: string) {
-    this.readwrite = new Set([resolve(cwd), ...DEFAULT_READWRITE]);
-    this.readonlyPaths = new Set(DEFAULT_READONLY);
+    this.readWritePaths = new Set([resolve(cwd), ...DEFAULT_READWRITE]);
+    this.readOnlyPaths = new Set(DEFAULT_READONLY);
   }
 
   grantReadWrite(path: string): void {
-    this.readwrite.add(resolve(path));
+    this.readWritePaths.add(resolve(path));
   }
 
   grantReadOnly(path: string): void {
-    this.readonlyPaths.add(resolve(path));
+    this.readOnlyPaths.add(resolve(path));
   }
 
-  get readwriteDirs(): string[] {
-    return [...this.readwrite];
+  get readWriteDirs(): string[] {
+    return [...this.readWritePaths];
   }
 
-  get readonlyDirs(): string[] {
-    return [...this.readonlyPaths];
+  get readOnlyDirs(): string[] {
+    return [...this.readOnlyPaths];
   }
 
   allowsWrite(path: string): boolean {
     const target = resolve(path);
-    return this.readwriteDirs.some((dir) => target === dir || target.startsWith(`${dir}/`));
+    return this.readWriteDirs.some((dir) => target === dir || target.startsWith(`${dir}/`));
   }
 
   toEnv(net: NetPolicy): Record<string, string> {
     return {
-      SANDBOX_RO_PATHS: this.readonlyDirs.join(":"),
-      SANDBOX_RW_PATHS: this.readwriteDirs.join(":"),
+      SANDBOX_RO_PATHS: this.readOnlyDirs.join(":"),
+      SANDBOX_RW_PATHS: this.readWriteDirs.join(":"),
       SANDBOX_NET: net,
     };
   }
@@ -61,24 +61,24 @@ export function helperPath(): string {
 export interface SandboxStatus {
   enabled: boolean;
   available: boolean;
-  landlock: boolean;
+  hasLandlock: boolean;
   net: NetPolicy;
   degraded: boolean;
 }
 
 export async function probeSandbox(net: NetPolicy, enabled = true): Promise<SandboxStatus> {
   if (!enabled) {
-    return { enabled: false, available: false, landlock: false, net, degraded: false };
+    return { enabled: false, available: false, hasLandlock: false, net, degraded: false };
   }
   const binary = helperPath();
   if (!(await Bun.file(binary).exists())) {
-    return { enabled: true, available: false, landlock: false, net, degraded: true };
+    return { enabled: true, available: false, hasLandlock: false, net, degraded: true };
   }
   const probe = Bun.spawn([binary, "--probe"], { stdout: "pipe", stderr: "ignore" });
   const output = await new Response(probe.stdout).text();
   await probe.exited;
-  const landlock = output.includes("landlock=ok");
-  return { enabled: true, available: true, landlock, net, degraded: !landlock };
+  const hasLandlock = output.includes("landlock=ok");
+  return { enabled: true, available: true, hasLandlock, net, degraded: !hasLandlock };
 }
 
 export interface BashResult {

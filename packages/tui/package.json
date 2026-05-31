@@ -6,6 +6,11 @@
   "bin": {
     "totvibe": "./src/index.tsx"
   },
+  "exports": {
+    ".": "./src/index.tsx",
+    "./app": "./src/App.tsx",
+    "./providers/config": "./src/providers/config.ts"
+  },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^2",
     "@opentui/core": "latest",
@@ -16,6 +21,7 @@
     "@totvibe/tools": "workspace:*",
     "ai": "^6",
     "citty": "^0.2.2",
+    "jotai": "^2",
     "react": "^19"
   }
 }

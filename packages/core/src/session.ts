@@ -1,14 +1,10 @@
-import type { ModelMessage } from "ai";
+import type { ModelMessage } from "./ai-core";
 
 export interface Session {
   id: string;
   messages: ModelMessage[];
 }
 
-export function createSession(id: string = crypto.randomUUID()): Session {
-  return { id, messages: [] };
-}
-
-export function cloneSession(session: Session): Session {
-  return { id: crypto.randomUUID(), messages: structuredClone(session.messages) };
+export function createSession(id: string = crypto.randomUUID(), messages: ModelMessage[] = []): Session {
+  return { id, messages };
 }

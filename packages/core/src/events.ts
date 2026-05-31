@@ -1,5 +1,8 @@
+import type { ModelMessage } from "./ai-core";
+
 export type AgentEvent =
   | { type: "turn_start" }
+  | { type: "message"; message: ModelMessage }
   | { type: "text"; text: string }
   | { type: "reasoning"; text: string }
   | { type: "tool_call"; id: string; name: string; input: unknown }
