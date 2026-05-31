@@ -1,4 +1,4 @@
-import { tool, type ToolSet } from "ai";
+import { tool, type ToolSet } from "./ai-core";
 import type { ZodType } from "zod";
 import type { Middleware, ToolInvocation } from "./pipeline";
 

@@ -1,4 +1,4 @@
-import type { ModelMessage } from "ai";
+import type { ModelMessage } from "./ai-core";
 
 export interface Session {
   id: string;

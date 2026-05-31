@@ -1,5 +1,15 @@
 # totvibe
 
+```ansi
+[38;2;125;207;255m░▒▓████████▓▒░▒▓██████▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓███████▓▒░░▒▓████████▓▒░[0m
+[38;2;135;198;254m   ░▒▓█▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░   ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░[0m
+[38;2;146;189;252m   ░▒▓█▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░    ░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░[0m
+[38;2;156;181;251m   ░▒▓█▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░    ░▒▓█▓▒▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓██████▓▒░[0m
+[38;2;166;172;250m   ░▒▓█▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░[0m
+[38;2;177;163;248m   ░▒▓█▓▒░  ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     ░▒▓█▓▓█▓▒░ ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░[0m
+[38;2;187;154;247m   ░▒▓█▓▒░   ░▒▓██████▓▒░  ░▒▓█▓▒░      ░▒▓██▓▒░  ░▒▓█▓▒░▒▓███████▓▒░░▒▓████████▓▒░[0m
+```
+
 A minimalist terminal coding assistant — an owned, streaming tool-use loop wrapped in an [OpenTUI](https://opentui.com) TUI, on [Bun](https://bun.com), powered by the [Vercel AI SDK](https://ai-sdk.dev) v6.
 
 ## Setup
@@ -103,7 +113,7 @@ DASHSCOPE_API_KEY=sk-...
 # MODEL=qwen3.7-max
 ```
 
-To add another OpenAI-compatible provider, append one entry (including its model metadata) to the `PROVIDERS` registry in `packages/tui/src/config.ts`.
+To add another OpenAI-compatible provider, append one entry (including its model metadata) to the `PROVIDERS` registry in `packages/tui/src/providers/registry.ts`.
 
 ## Architecture
 
@@ -116,9 +126,10 @@ flowchart TD
     subgraph tui["@totvibe/tui · view"]
       direction TB
       Input["InputBar"]
-      Reducer["reducer → AppState"]
+      Controller["controller<br/>run loop · AbortController"]
+      Atoms["jotai store · atoms"]
       Render["box / scrollbox / text"]
-      Input --> Reducer --> Render
+      Input --> Controller --> Atoms --> Render
     end
     subgraph core["@totvibe/core · engine"]
       direction TB
@@ -144,8 +155,8 @@ flowchart TD
       Helper["Landlock + netns helper"]
     end
 
-    Input -->|"user text"| Loop
-    Bus -->|"AgentEvent"| Reducer
+    Controller -->|"user text"| Loop
+    Bus -->|"AgentEvent"| Controller
     Dispatch --> Gate
     Gate -->|"read → allow · mutate → ask"| Builtins
     Gate -->|"mutate → ask"| Bash
@@ -160,7 +171,7 @@ flowchart TD
 | `@totvibe/tools` | The built-in tool *values* (`defineTool`), with token-capped output | Adding a tool — return it from `createBuiltinTools` |
 | `@totvibe/safety` | The policy engine (`policyGate`: precedence deny→mode→allow→ask + absolute-deny) and the append-only `AuditLedger` | Composing more middleware (e.g. a classifier) before the executor |
 | `@totvibe/sandbox` | The `SandboxState` allow-list + Rust Landlock/namespace helper for `run_bash` | New default paths; per-tool network policy; another OS backend |
-| `@totvibe/tui` | The OpenTUI React view + entry + provider config | New components; the view only subscribes to events, it never drives the loop |
+| `@totvibe/tui` | The OpenTUI React view + entry + provider config, a non-React controller that drives the loop, and Jotai atoms as the view's single source of truth | Adding leaf components that subscribe to the atoms they read; the controller owns the run loop + AbortController |
 
 The loop is provider-agnostic: the model is injected, so swapping `qwen3.7-max` for another model or provider is a config change, not a code change.
 

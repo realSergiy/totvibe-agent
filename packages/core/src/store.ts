@@ -1,6 +1,6 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
-import type { ModelMessage } from "ai";
+import type { ModelMessage } from "./ai-core";
 import type { AgentEvent } from "./events";
 import { JsonlLog } from "./jsonl";
 

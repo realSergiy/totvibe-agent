@@ -2,8 +2,8 @@
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { defineCommand, runMain } from "citty";
-import { loadInitialConfig } from "./config";
-import { App } from "./App";
+import { loadInitialConfig } from "./providers/config";
+import { TotvibeApp } from "./root";
 
 const main = defineCommand({
   meta: {
@@ -38,7 +38,7 @@ const main = defineCommand({
       targetFps: 30,
       useMouse: false,
     });
-    createRoot(renderer).render(<App config={config} />);
+    createRoot(renderer).render(<TotvibeApp config={config} />);
   },
 });
 

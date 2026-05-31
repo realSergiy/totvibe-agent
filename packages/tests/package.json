@@ -1,0 +1,13 @@
+{
+  "name": "@totvibe/tests",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@opentui/core": "latest",
+    "@opentui/react": "latest",
+    "@totvibe/core": "workspace:*",
+    "@totvibe/tui": "workspace:*",
+    "react": "^19"
+  }
+}

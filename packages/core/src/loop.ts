@@ -4,7 +4,7 @@ import {
   type ModelMessage,
   type ToolResultPart,
   type ToolSet,
-} from "ai";
+} from "./ai-core";
 import type { AgentEvent } from "./events";
 import type { Session } from "./session";
 import { passthrough, type Middleware } from "./pipeline";

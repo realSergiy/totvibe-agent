@@ -1,4 +1,4 @@
-import type { ModelMessage } from "ai";
+import type { ModelMessage } from "./ai-core";
 
 export type AgentEvent =
   | { type: "turn_start" }
