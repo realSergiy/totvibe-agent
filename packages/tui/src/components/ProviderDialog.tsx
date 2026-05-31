@@ -6,14 +6,14 @@ import { connectionStatusAtom, modelIdAtom, providerNameAtom } from "../state/pr
 import { isProviderDialogOpenAtom } from "../state/ui";
 import { isConnected, PROVIDERS, type ProviderInfo } from "../providers/registry";
 import { validateApiKey } from "../providers/client";
-import { useController } from "../agent/context";
+import { getController } from "../agent/controller";
 import { openKeyPage } from "../actions";
 import { theme } from "../theme";
 
 type DialogMode = "select" | "key" | "model";
 
 export function ProviderDialog() {
-  const controller = useController();
+  const controller = getController();
   const activeProviderName = useAtomValue(providerNameAtom);
   const activeModelId = useAtomValue(modelIdAtom);
   const connectionStatus = useAtomValue(connectionStatusAtom);

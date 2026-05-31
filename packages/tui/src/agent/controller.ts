@@ -14,6 +14,7 @@ import type { Store } from "../state/store";
 import { appendMessageAtom, applyEventAtom, messagesAtom } from "../state/conversation";
 import {
   agentStatusAtom,
+  configAtom,
   isStreamingAtom,
   pendingApprovalAtom,
   sandboxStatusAtom,
@@ -140,6 +141,7 @@ export function createController(config: InitialConfig, store: Store): AgentCont
 
   return {
     init() {
+      store.set(configAtom, config);
       store.set(messagesAtom, []);
       store.set(isStreamingAtom, false);
       store.set(agentStatusAtom, "ready");
@@ -224,4 +226,19 @@ export function createController(config: InitialConfig, store: Store): AgentCont
       refreshConnection();
     },
   };
+}
+
+let activeController: AgentController | null = null;
+
+export function initController(config: InitialConfig, store: Store): AgentController {
+  activeController = createController(config, store);
+  activeController.init();
+  return activeController;
+}
+
+export function getController(): AgentController {
+  if (!activeController) {
+    throw new Error("controller not initialized — call initController first");
+  }
+  return activeController;
 }

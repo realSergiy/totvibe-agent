@@ -8,7 +8,7 @@
   },
   "exports": {
     ".": "./src/index.tsx",
-    "./root": "./src/root.tsx",
+    "./app": "./src/App.tsx",
     "./providers/config": "./src/providers/config.ts"
   },
   "dependencies": {

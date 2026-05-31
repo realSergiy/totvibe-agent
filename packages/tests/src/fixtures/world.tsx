@@ -1,6 +1,6 @@
 import { act } from "react";
 import { testRender } from "@opentui/react/test-utils";
-import { TotvibeApp } from "@totvibe/tui/root";
+import { App } from "@totvibe/tui/app";
 import type { InitialConfig } from "@totvibe/tui/providers/config";
 
 const PROVIDER_KEY_ENV_VARS = [
@@ -47,7 +47,7 @@ export async function renderWorld(options: WorldOptions = {}): Promise<World> {
   const restoreFetch = stubFetchOk();
   let setup!: RenderSetup;
   await act(async () => {
-    setup = await testRender(<TotvibeApp config={buildConfig()} />, {
+    setup = await testRender(<App config={buildConfig()} />, {
       width: 120,
       height: 40,
       exitOnCtrlC: false,

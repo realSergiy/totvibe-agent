@@ -2,12 +2,12 @@ import { useKeyboard } from "@opentui/react";
 import { useAtomValue } from "jotai";
 import { pendingApprovalAtom } from "../state/session";
 import { formatToolInput } from "../state/conversation";
-import { useController } from "../agent/context";
+import { getController } from "../agent/controller";
 import { theme } from "../theme";
 
 export function ApprovalPrompt() {
   const pendingApproval = useAtomValue(pendingApprovalAtom);
-  const controller = useController();
+  const controller = getController();
 
   useKeyboard((key) => {
     if (!pendingApproval) return;

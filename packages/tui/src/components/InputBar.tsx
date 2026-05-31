@@ -2,11 +2,11 @@ import { useRef } from "react";
 import { useAtomValue } from "jotai";
 import type { InputRenderable } from "@opentui/core";
 import { isStreamingAtom } from "../state/session";
-import { useController } from "../agent/context";
+import { getController } from "../agent/controller";
 
 export function InputBar() {
   const isStreaming = useAtomValue(isStreamingAtom);
-  const controller = useController();
+  const controller = getController();
   const inputRef = useRef<InputRenderable>(null);
 
   return (
