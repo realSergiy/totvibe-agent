@@ -1,0 +1,19 @@
+{
+  "name": "@totvibe/runtime",
+  "version": "0.1.0",
+  "type": "module",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "^2",
+    "@totvibe/core": "workspace:*",
+    "@totvibe/protocol": "workspace:*",
+    "@totvibe/safety": "workspace:*",
+    "@totvibe/sandbox": "workspace:*",
+    "@totvibe/tools": "workspace:*",
+    "ai": "^6"
+  }
+}

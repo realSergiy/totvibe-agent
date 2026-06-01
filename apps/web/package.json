@@ -1,0 +1,20 @@
+{
+  "name": "@totvibe/web",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/Root.tsx",
+    "./server": "./src/server.ts"
+  },
+  "dependencies": {
+    "@totvibe/protocol": "workspace:*",
+    "@totvibe/runtime": "workspace:*",
+    "@totvibe/view": "workspace:*",
+    "jotai": "^2",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/react-dom": "^19"
+  }
+}

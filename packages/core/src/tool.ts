@@ -14,10 +14,10 @@ export interface ToolDef<Input = unknown> {
   description: string;
   inputSchema: ZodType<Input>;
   risk: ToolRisk;
-  execute: (input: Input, context: ToolContext) => Promise<string>;
+  execute(input: Input, context: ToolContext): Promise<string>;
 }
 
-export type AnyToolDef = ToolDef<any>;
+export type AnyToolDef = ToolDef;
 
 export function defineTool<Input>(definition: ToolDef<Input>): ToolDef<Input> {
   return definition;
@@ -108,19 +108,18 @@ export async function runToolCalls(
   const outcomes = new Array<ToolCallOutcome>(calls.length);
   let index = 0;
   while (index < calls.length) {
-    const definition = findToolDefinition(definitions, calls[index]!.toolName);
+    const call = calls[index];
+    if (!call) break;
+    const definition = findToolDefinition(definitions, call.toolName);
     if (definition && isReadOnly(definition)) {
       const batchStart = index;
       const batch: Array<Promise<ToolCallOutcome>> = [];
       while (index < calls.length) {
-        const nextToolDef = findToolDefinition(
-          definitions,
-          calls[index]!.toolName,
-        );
+        const batchCall = calls[index];
+        if (!batchCall) break;
+        const nextToolDef = findToolDefinition(definitions, batchCall.toolName);
         if (!nextToolDef || !isReadOnly(nextToolDef)) break;
-        batch.push(
-          executeToolCall(definitions, calls[index]!, context, middleware),
-        );
+        batch.push(executeToolCall(definitions, batchCall, context, middleware));
         index += 1;
       }
       const settled = await Promise.all(batch);
@@ -128,12 +127,7 @@ export async function runToolCalls(
         outcomes[batchStart + offset] = outcome;
       });
     } else {
-      outcomes[index] = await executeToolCall(
-        definitions,
-        calls[index]!,
-        context,
-        middleware,
-      );
+      outcomes[index] = await executeToolCall(definitions, call, context, middleware);
       index += 1;
     }
   }

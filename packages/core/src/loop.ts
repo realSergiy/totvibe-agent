@@ -196,7 +196,7 @@ async function* streamModelTurn(
   const calls: ToolCallRequest[] = toolCalls.map((call) => ({
     toolCallId: call.toolCallId,
     toolName: call.toolName,
-    input: call.input,
+    input: call.input as unknown,
   }));
   return {
     messages: response.messages,

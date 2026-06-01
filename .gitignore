@@ -39,3 +39,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Rust sandbox helper build artifacts
 sandbox-helper/target
 packages/sandbox/bin
+
+# Reference clones (regenerated via `just clone`)
+reference_clones

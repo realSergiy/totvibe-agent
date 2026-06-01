@@ -4,10 +4,19 @@
   "type": "module",
   "private": true,
   "dependencies": {
-    "@opentui/core": "latest",
     "@opentui/react": "latest",
     "@totvibe/core": "workspace:*",
+    "@totvibe/protocol": "workspace:*",
+    "@totvibe/runtime": "workspace:*",
     "@totvibe/tui": "workspace:*",
-    "react": "^19"
+    "@totvibe/view": "workspace:*",
+    "@totvibe/web": "workspace:*",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "^20",
+    "@testing-library/react": "^16",
+    "@types/react-dom": "^19"
   }
 }

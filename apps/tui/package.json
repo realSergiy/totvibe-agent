@@ -1,0 +1,24 @@
+{
+  "name": "@totvibe/tui",
+  "version": "0.1.0",
+  "type": "module",
+  "module": "./src/index.tsx",
+  "bin": {
+    "totvibe": "./src/index.tsx"
+  },
+  "exports": {
+    ".": "./src/index.tsx",
+    "./root": "./src/Root.tsx"
+  },
+  "dependencies": {
+    "@opentui/core": "latest",
+    "@opentui/react": "latest",
+    "@totvibe/protocol": "workspace:*",
+    "@totvibe/runtime": "workspace:*",
+    "@totvibe/view": "workspace:*",
+    "@totvibe/web": "workspace:*",
+    "citty": "^0.2.2",
+    "jotai": "^2",
+    "react": "^19"
+  }
+}

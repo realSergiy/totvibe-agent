@@ -85,7 +85,9 @@ async function askWithTimeout(
   if (!timeoutMs || timeoutMs <= 0) return approve(request);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<AskOutcome>((resolve) => {
-    timer = setTimeout(() => resolve("timeout"), timeoutMs);
+    timer = setTimeout(() => {
+      resolve("timeout");
+    }, timeoutMs);
   });
   try {
     return await Promise.race([approve(request), timeout]);
