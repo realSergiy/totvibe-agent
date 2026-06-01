@@ -12,6 +12,8 @@
     "serve": "bun run apps/tui/src/index.tsx --serve",
     "typecheck": "tsc -b",
     "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
     "knip": "knip-bun",
     "test": "bun run test:tui && bun run test:web",
     "test:tui": "bun test packages/tests/src/tui packages/tests/src/wire.test.ts",
@@ -26,6 +28,7 @@
     "eslint": "^10.4.1",
     "jiti": "^2.7.0",
     "knip": "^6.15.0",
+    "prettier": "^3.8.3",
     "react": "^19",
     "typescript": "^5",
     "typescript-eslint": "^8.60.0"

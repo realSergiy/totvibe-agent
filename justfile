@@ -20,17 +20,18 @@ alias tc := typecheck
 typecheck:
     bun run typecheck
 
-# Lint every workspace package with typescript-eslint (strict, type-checked)
+# Lint and format every workspace package: eslint --fix + prettier --write
 alias l := lint
 lint:
-    bun run lint
+    bun run lint:fix
+    bun run format
 
 # Find unused files, dependencies, and exports across the workspace
 alias k := knip
 knip:
     bun run knip
 
-# Gate: lint, typecheck, knip, then test
+# Gate: knip, typecheck, lint (autofix + format), then test
 alias c := check
 check: knip typecheck lint test
 
