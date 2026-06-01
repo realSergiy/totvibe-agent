@@ -1,12 +1,9 @@
 {
-  "extends": "@totvibe/tsconfig/web.json",
-  "include": ["happydom.ts", "src"],
-  "exclude": ["src/tui"],
+  "extends": "@totvibe/tsconfig/bun.json",
+  "include": ["src/fixtures", "src/sharedStories", "src/wire.test.ts"],
   "references": [
     { "path": "../core" },
     { "path": "../protocol" },
-    { "path": "../runtime" },
-    { "path": "../view" },
-    { "path": "../../apps/web" }
+    { "path": "../runtime" }
   ]
 }

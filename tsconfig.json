@@ -12,6 +12,7 @@
     { "path": "./apps/web" },
     { "path": "./apps/tui" },
     { "path": "./packages/tests" },
+    { "path": "./packages/tests/src/web" },
     { "path": "./packages/tests/src/tui" }
   ]
 }
