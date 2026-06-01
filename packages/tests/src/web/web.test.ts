@@ -1,4 +1,4 @@
-import { registerSharedScenarios } from "../sharedStories";
-import { webHarness } from "./harness";
+import { registerSharedScenarios } from '../sharedStories';
+import { webHarness } from './harness';
 
-await registerSharedScenarios(webHarness);
+registerSharedScenarios(webHarness);

@@ -1,4 +1,4 @@
-import { DEFAULT_PROVIDER, type ProviderInfo, PROVIDERS } from "@totvibe/protocol";
+import { DEFAULT_PROVIDER, type ProviderInfo, PROVIDERS } from '@totvibe/protocol';
 import {
   connectedProvidersAtom,
   connectionStatusAtom,
@@ -8,9 +8,9 @@ import {
   providerNameAtom,
   theme,
   useController,
-} from "@totvibe/view";
-import { useAtomValue, useSetAtom } from "jotai";
-import { useState } from "react";
+} from '@totvibe/view';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { useState } from 'react';
 
 export const ProviderDialog = () => {
   const controller = useController();
@@ -21,15 +21,15 @@ export const ProviderDialog = () => {
   const notice = useAtomValue(noticeAtom);
   const setNotice = useSetAtom(noticeAtom);
   const setProviderDialogOpen = useSetAtom(isProviderDialogOpenAtom);
-  const canClose = connectionStatus !== "no-key";
+  const canClose = connectionStatus !== 'no-key';
 
   const initialIndex = Math.max(
     0,
-    PROVIDERS.findIndex((provider) => provider.name === activeProviderName),
+    PROVIDERS.findIndex(provider => provider.name === activeProviderName),
   );
   const [highlightedIndex, setHighlightedIndex] = useState(initialIndex);
-  const [keyValue, setKeyValue] = useState("");
-  const [modelValue, setModelValue] = useState("");
+  const [keyValue, setKeyValue] = useState('');
+  const [modelValue, setModelValue] = useState('');
 
   const highlightedProvider = PROVIDERS[highlightedIndex] ?? DEFAULT_PROVIDER;
   const isConnected = (provider: ProviderInfo) => connectedProviders.has(provider.name);
@@ -48,7 +48,7 @@ export const ProviderDialog = () => {
     const apiKey = keyValue.trim();
     if (!apiKey) return;
     controller.saveApiKey(highlightedProvider.name, apiKey);
-    setKeyValue("");
+    setKeyValue('');
   };
 
   return (
@@ -58,7 +58,7 @@ export const ProviderDialog = () => {
       <div className="provider-list">
         {PROVIDERS.map((provider, providerIndex) => (
           <button
-            className={`provider-row${providerIndex === highlightedIndex ? " highlighted" : ""}`}
+            className={`provider-row${providerIndex === highlightedIndex ? ' highlighted' : ''}`}
             key={provider.name}
             onClick={() => {
               setHighlightedIndex(providerIndex);
@@ -66,7 +66,7 @@ export const ProviderDialog = () => {
             style={{ color: providerIndex === highlightedIndex ? theme.text : theme.muted }}
             type="button"
           >
-            {isConnected(provider) ? "●" : "○"} {provider.label} · {resolveModelId(provider)}
+            {isConnected(provider) ? '●' : '○'} {provider.label} · {resolveModelId(provider)}
           </button>
         ))}
       </div>
@@ -80,11 +80,11 @@ export const ProviderDialog = () => {
       <div className="field">
         <span style={{ color: theme.muted }}>API key</span>
         <input
-          onChange={(event) => {
+          onChange={event => {
             setKeyValue(event.target.value);
           }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") saveApiKey();
+          onKeyDown={event => {
+            if (event.key === 'Enter') saveApiKey();
           }}
           placeholder={`paste ${highlightedProvider.apiKeyEnv}`}
           type="password"
@@ -98,11 +98,11 @@ export const ProviderDialog = () => {
       <div className="field">
         <span style={{ color: theme.muted }}>Model</span>
         <input
-          onChange={(event) => {
+          onChange={event => {
             setModelValue(event.target.value);
           }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") activateProvider(highlightedProvider);
+          onKeyDown={event => {
+            if (event.key === 'Enter') activateProvider(highlightedProvider);
           }}
           placeholder={resolveModelId(highlightedProvider)}
           value={modelValue}
@@ -147,7 +147,7 @@ export const ProviderDialog = () => {
         )}
       </div>
 
-      {notice ? <div style={{ color: theme.highlight }}>{notice}</div> : null}
+      {notice ? <div style={{ color: theme.highlight }}>{notice}</div> : undefined}
     </div>
   );
 };

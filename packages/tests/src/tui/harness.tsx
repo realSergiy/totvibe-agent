@@ -1,27 +1,22 @@
-import { testRender } from "@opentui/react/test-utils";
-import { Root } from "@totvibe/tui/root";
-import { expect } from "bun:test";
-import { act } from "react";
+import { testRender } from '@opentui/react/test-utils';
+import { Root } from '@totvibe/tui/root';
+import { expect } from 'bun:test';
+import { act } from 'react';
 
-import type { Scene } from "../sharedStories/harness";
+import type { Scene } from '../sharedStories/harness';
 
-import {
-  buildConfig,
-  CONNECTED_PROVIDER_KEYS,
-  isolateProviderEnv,
-  stubFetchOk,
-} from "../fixtures/config";
-import { resetModelReply, setModelReply } from "../fixtures/model-mock";
-
-export type TuiScene = Scene & {
-  pressArrowDown(): Promise<void>;
-}
+import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '../fixtures/config';
+import { resetModelReply, setModelReply } from '../fixtures/model-mock';
 
 type RenderOptions = {
   connectedProviderKeys?: Record<string, string>;
-}
+};
 
 type RenderSetup = Awaited<ReturnType<typeof testRender>>;
+
+type TuiScene = Scene & {
+  pressArrowDown(): Promise<void>;
+};
 
 const renderScene = async (options: RenderOptions) => {
   const restoreEnv = isolateProviderEnv(options.connectedProviderKeys ?? {});
@@ -49,25 +44,25 @@ const renderScene = async (options: RenderOptions) => {
 
   return {
     act: {
-      type: (text) => settle(() => setup.mockInput.typeText(text)),
-      typeAndSubmit: (text) =>
+      type: text => settle(() => setup.mockInput.typeText(text)),
+      typeAndSubmit: text =>
         settle(async () => {
           await setup.mockInput.typeText(text);
           setup.mockInput.pressEnter();
         }),
     },
     assert: {
-      eventuallyShows: async (text) => {
+      eventuallyShows: async text => {
         await act(async () => {
           for (let pass = 0; pass < 50; pass += 1) {
             await setup.flush();
             if (setup.captureCharFrame().includes(text)) return;
-            await new Promise((resolve) => setTimeout(resolve, 2));
+            await new Promise(resolve => setTimeout(resolve, 2));
           }
         });
         frameShows(text);
       },
-      hides: (text) => {
+      hides: text => {
         expect(setup.captureCharFrame()).not.toContain(text);
       },
       shows: frameShows,
@@ -82,9 +77,9 @@ const renderScene = async (options: RenderOptions) => {
     },
     pressArrowDown: () =>
       settle(() => {
-        setup.mockInput.pressArrow("down");
+        setup.mockInput.pressArrow('down');
       }),
-  };
+  } satisfies TuiScene;
 };
 
 export const tuiHarness = {

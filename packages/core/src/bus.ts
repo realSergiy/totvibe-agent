@@ -1,4 +1,4 @@
-import type { AgentEvent } from "./events";
+import type { AgentEvent } from './events';
 
 export type AgentEventListener = (event: AgentEvent) => void;
 

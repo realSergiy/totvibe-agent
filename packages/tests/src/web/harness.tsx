@@ -1,35 +1,30 @@
-import "../fixtures/model-mock";
-import { cleanup, fireEvent, render } from "@testing-library/react";
-import { createRuntime } from "@totvibe/runtime";
-import { type AgentController, applyServerEvent, type Store } from "@totvibe/view";
-import { Root } from "@totvibe/web";
-import { act } from "react";
+import '../fixtures/model-mock';
+import { cleanup, fireEvent, render } from '@testing-library/react';
+import { createRuntime } from '@totvibe/runtime';
+import { type AgentController, applyServerEvent, type Store } from '@totvibe/view';
+import { Root } from '@totvibe/web';
+import { act } from 'react';
 
-import type { Scene } from "../sharedStories/harness";
+import type { Scene } from '../sharedStories/harness';
 
-import {
-  buildConfig,
-  CONNECTED_PROVIDER_KEYS,
-  isolateProviderEnv,
-  stubFetchOk,
-} from "../fixtures/config";
-import { resetModelReply, setModelReply } from "../fixtures/model-mock";
+import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '../fixtures/config';
+import { resetModelReply, setModelReply } from '../fixtures/model-mock';
 
 type RenderOptions = {
   connectedProviderKeys?: Record<string, string>;
-}
+};
 
 const createInProcessController = (store: Store) => {
   const runtime = createRuntime(buildConfig());
-  runtime.subscribe((event) => {
+  runtime.subscribe(event => {
     applyServerEvent(store, event);
   });
   const controller: AgentController = {
     cancel: () => {
       runtime.cancel();
     },
-    openKeyPage: () => {},
-    resolveApproval: (granted) => {
+    openKeyPage: () => void 0,
+    resolveApproval: granted => {
       runtime.resolveApproval(granted);
     },
     saveApiKey: (providerName, apiKey) => {
@@ -38,10 +33,10 @@ const createInProcessController = (store: Store) => {
     selectProvider: (providerName, modelId) => {
       runtime.selectProvider(providerName, modelId);
     },
-    submit: (text) => {
+    submit: text => {
       runtime.submit(text);
     },
-    testConnection: (providerName) => {
+    testConnection: providerName => {
       void runtime.testConnection(providerName);
     },
   };
@@ -55,10 +50,16 @@ const createInProcessController = (store: Store) => {
 
 const visibleText = () => {
   const haystack = [document.body.textContent];
-  for (const input of document.querySelectorAll("input")) {
+  for (const input of document.querySelectorAll('input')) {
     haystack.push(input.placeholder, input.value);
   }
-  return haystack.join(" ");
+  return haystack.join(' ');
+};
+
+const inputBar = () => {
+  const input = document.querySelector<HTMLInputElement>('.input-bar input');
+  if (!input) throw new Error('input bar is not rendered');
+  return input;
 };
 
 const renderScene = async (options: RenderOptions) => {
@@ -72,31 +73,25 @@ const renderScene = async (options: RenderOptions) => {
 
   const flush = () =>
     act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
-
-  const inputBar = () => {
-    const input = document.querySelector<HTMLInputElement>(".input-bar input");
-    if (!input) throw new Error("input bar is not rendered");
-    return input;
-  };
 
   return {
     act: {
-      type: async (text) => {
+      type: async text => {
         fireEvent.change(inputBar(), { target: { value: text } });
         await flush();
       },
-      typeAndSubmit: async (text) => {
+      typeAndSubmit: async text => {
         const input = inputBar();
         fireEvent.change(input, { target: { value: text } });
-        const form = input.closest("form");
+        const form = input.closest('form');
         if (form) fireEvent.submit(form);
         await flush();
       },
     },
     assert: {
-      eventuallyShows: async (text) => {
+      eventuallyShows: async text => {
         for (let pass = 0; pass < 50; pass += 1) {
           if (visibleText().includes(text)) return;
           await flush();
@@ -105,12 +100,12 @@ const renderScene = async (options: RenderOptions) => {
           throw new Error(`expected web UI to eventually show ${JSON.stringify(text)}`);
         }
       },
-      hides: (text) => {
+      hides: text => {
         if (visibleText().includes(text)) {
           throw new Error(`expected web UI to hide ${JSON.stringify(text)}`);
         }
       },
-      shows: (text) => {
+      shows: text => {
         if (!visibleText().includes(text)) {
           throw new Error(`expected web UI to show ${JSON.stringify(text)}`);
         }
@@ -122,7 +117,7 @@ const renderScene = async (options: RenderOptions) => {
       restoreEnv();
       return Promise.resolve();
     },
-  };
+  } satisfies Scene;
 };
 
 export const webHarness = {

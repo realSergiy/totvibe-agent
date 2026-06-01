@@ -1,40 +1,41 @@
-import type { ClientCommand, ServerEvent } from "@totvibe/protocol";
+import type { ClientCommand } from '@totvibe/protocol';
 
-import { type AgentController, applyServerEvent, type Store } from "@totvibe/view";
+import { serverEventSchema } from '@totvibe/protocol';
+import { type AgentController, applyServerEvent, type Store } from '@totvibe/view';
 
-export type WebController = {
+type WebController = {
   controller: AgentController;
   start(): void;
-}
+};
 
 export const createSocketController = (store: Store) => {
-  const socketUrl = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
-  let socket: null | WebSocket = null;
+  const socketUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws`;
+  let socket: undefined | WebSocket;
   const send = (command: ClientCommand): void => {
     socket?.send(JSON.stringify(command));
   };
 
   const controller: AgentController = {
     cancel: () => {
-      send({ type: "cancel" });
+      send({ type: 'cancel' });
     },
-    openKeyPage: (url) => {
-      window.open(url, "_blank", "noopener");
+    openKeyPage: url => {
+      window.open(url, '_blank', 'noopener');
     },
-    resolveApproval: (granted) => {
-      send({ granted, type: "approve" });
+    resolveApproval: granted => {
+      send({ granted, type: 'approve' });
     },
     saveApiKey: (providerName, apiKey) => {
-      send({ apiKey, providerName, type: "save-api-key" });
+      send({ apiKey, providerName, type: 'save-api-key' });
     },
     selectProvider: (providerName, modelId) => {
-      send({ modelId, providerName, type: "select-provider" });
+      send({ modelId, providerName, type: 'select-provider' });
     },
-    submit: (text) => {
-      send({ text, type: "submit" });
+    submit: text => {
+      send({ text, type: 'submit' });
     },
-    testConnection: (providerName) => {
-      send({ providerName, type: "test-connection" });
+    testConnection: providerName => {
+      send({ providerName, type: 'test-connection' });
     },
   };
 
@@ -42,9 +43,10 @@ export const createSocketController = (store: Store) => {
     controller,
     start: () => {
       socket = new WebSocket(socketUrl);
-      socket.onmessage = (event) => {
-        applyServerEvent(store, JSON.parse(event.data as string) as ServerEvent);
-      };
+      socket.addEventListener('message', event => {
+        if (typeof event.data !== 'string') return;
+        applyServerEvent(store, serverEventSchema.parse(JSON.parse(event.data)));
+      });
     },
-  };
+  } satisfies WebController;
 };

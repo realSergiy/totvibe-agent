@@ -11,8 +11,8 @@ import {
   providerAtom,
   sandboxStatusAtom,
   theme,
-} from "@totvibe/view";
-import { useAtomValue } from "jotai";
+} from '@totvibe/view';
+import { useAtomValue } from 'jotai';
 
 export const StatusBar = () => {
   const provider = useAtomValue(providerAtom);
@@ -23,7 +23,7 @@ export const StatusBar = () => {
   const cwd = useAtomValue(cwdAtom);
 
   return (
-    <box style={{ flexDirection: "row", gap: 2, padding: 1 }}>
+    <box style={{ flexDirection: 'row', gap: 2, padding: 1 }}>
       <text fg={theme.brand}>totvibe</text>
       <text fg={pickConnectionColor(connectionStatus)}>
         {pickConnectionSymbol(connectionStatus)} {provider.name}:{modelId}

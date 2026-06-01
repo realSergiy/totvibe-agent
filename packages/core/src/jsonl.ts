@@ -1,5 +1,5 @@
-import { appendFile, mkdir, readFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { appendFile, mkdir, readFile } from 'node:fs/promises';
+import path from 'node:path';
 
 export class JsonlLog {
   private isDirReady = false;
@@ -11,7 +11,7 @@ export class JsonlLog {
     const line = `${JSON.stringify(record)}\n`;
     this.writes = this.writes.then(async () => {
       if (!this.isDirReady) {
-        await mkdir(dirname(this.path), { recursive: true });
+        await mkdir(path.dirname(this.path), { recursive: true });
         this.isDirReady = true;
       }
       await appendFile(this.path, line);
@@ -25,16 +25,15 @@ export class JsonlLog {
   async readAll() {
     let text: string;
     try {
-      text = await readFile(this.path, "utf8");
+      text = await readFile(this.path, 'utf8');
     } catch {
       return [];
     }
     const records: unknown[] = [];
-    for (const line of text.split("\n")) {
+    for (const line of text.split('\n')) {
       if (!line.trim()) continue;
       records.push(JSON.parse(line));
     }
     return records;
   }
 }
-

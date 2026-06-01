@@ -1,6 +1,6 @@
-import { JsonlLog } from "@totvibe/core";
+import { JsonlLog } from '@totvibe/core';
 
-import type { PolicyDecisionRecord } from "./index";
+import type { PolicyDecisionRecord } from './index';
 
 export class AuditLedger {
   private readonly log: JsonlLog;

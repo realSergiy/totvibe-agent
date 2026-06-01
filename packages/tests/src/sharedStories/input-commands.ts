@@ -1,25 +1,27 @@
-import { test } from "bun:test";
+import { test } from 'bun:test';
 
-import type { Harness } from "./harness";
+import type { Harness } from './harness';
 
-export default function registerInputCommandScenarios(harness: Harness) {
-  test("shows the input prompt when a provider is connected", async () => {
+const registerInputCommandScenarios = (harness: Harness) => {
+  test('shows the input prompt when a provider is connected', async () => {
     const scene = await harness.connected();
-    scene.assert.shows("Ask totvibe to do something");
+    scene.assert.shows('Ask totvibe to do something');
     await scene.dispose();
   });
 
-  test("the /grant command prints a confirmation in the conversation", async () => {
+  test('the /grant command prints a confirmation in the conversation', async () => {
     const scene = await harness.connected();
-    await scene.act.typeAndSubmit("/grant /tmp/demo");
-    scene.assert.shows("granted read/write: /tmp/demo");
+    await scene.act.typeAndSubmit('/grant /tmp/demo');
+    scene.assert.shows('granted read/write: /tmp/demo');
     await scene.dispose();
   });
 
-  test("the /provider command opens the provider dialog", async () => {
+  test('the /provider command opens the provider dialog', async () => {
     const scene = await harness.connected();
-    await scene.act.typeAndSubmit("/provider");
-    scene.assert.shows("Connect a provider");
+    await scene.act.typeAndSubmit('/provider');
+    scene.assert.shows('Connect a provider');
     await scene.dispose();
   });
-}
+};
+
+export default registerInputCommandScenarios;

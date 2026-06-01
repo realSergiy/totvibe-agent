@@ -35,17 +35,12 @@ bun remove @eslint/js typescript-eslint
 Before — the hand-rolled config:
 
 ```ts
-import eslint from "@eslint/js";
-import { defineConfig, globalIgnores } from "eslint/config";
-import tseslint from "typescript-eslint";
+import eslint from '@eslint/js';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import tseslint from 'typescript-eslint';
 
 export default defineConfig(
-  globalIgnores([
-    "reference_clones/**",
-    "**/node_modules/**",
-    "**/.tsbuild/**",
-    "packages/sandbox/**/target/**",
-  ]),
+  globalIgnores(['reference_clones/**', '**/node_modules/**', '**/.tsbuild/**', 'packages/sandbox/**/target/**']),
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   {
@@ -53,17 +48,17 @@ export default defineConfig(
       parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname },
     },
   },
-  { files: ["**/*.js", "**/*.mjs", "**/*.cjs"], extends: [tseslint.configs.disableTypeChecked] },
+  { files: ['**/*.js', '**/*.mjs', '**/*.cjs'], extends: [tseslint.configs.disableTypeChecked] },
 );
 ```
 
 After:
 
 ```ts
-import { totvibe } from "@totvibe/eslint-config";
+import { totvibe } from '@totvibe/eslint-config';
 
 export default totvibe({
-  ignores: ["reference_clones/**", "**/.tsbuild/**", "packages/sandbox/**/target/**"],
+  ignores: ['reference_clones/**', '**/.tsbuild/**', 'packages/sandbox/**/target/**'],
   react: true,
   tsconfigRootDir: import.meta.dirname,
 });
@@ -76,13 +71,13 @@ neither TanStack Router nor generated route trees, so leave `tanstack` off.
 
 ## Options
 
-| option            | default                       | use                                                  |
-| ----------------- | ----------------------------- | ---------------------------------------------------- |
-| `tsconfigRootDir` | `process.cwd()`               | root for type-checked rules; set `import.meta.dirname` |
-| `react`           | `false`                       | React + hooks rules                                  |
-| `reactFiles`      | `["**/src/**/*.{ts,tsx}"]`    | narrow if non-React packages misfire                 |
-| `tanstack`        | `false`                       | TanStack Router route-tree handling                  |
-| `ignores`         | `[]`                          | appended to the preset's default ignores             |
+| option            | default                    | use                                                    |
+| ----------------- | -------------------------- | ------------------------------------------------------ |
+| `tsconfigRootDir` | `process.cwd()`            | root for type-checked rules; set `import.meta.dirname` |
+| `react`           | `false`                    | React + hooks rules                                    |
+| `reactFiles`      | `["**/src/**/*.{ts,tsx}"]` | narrow if non-React packages misfire                   |
+| `tanstack`        | `false`                    | TanStack Router route-tree handling                    |
+| `ignores`         | `[]`                       | appended to the preset's default ignores               |
 
 ## Expect stricter rules
 

@@ -1,13 +1,13 @@
-import { type AgentController, ControllerContext, type Store } from "@totvibe/view";
-import { createStore, Provider } from "jotai";
-import { useEffect, useState } from "react";
+import { type AgentController, ControllerContext, type Store } from '@totvibe/view';
+import { createStore, Provider } from 'jotai';
+import { useEffect, useState } from 'react';
 
-import { App } from "./App";
-import { createSocketController } from "./createSocketController";
+import { App } from './App';
+import { createSocketController } from './createSocketController';
 
 export type RootProps = {
   create?: (store: Store) => { controller: AgentController; start: () => void };
-}
+};
 
 export const Root = ({ create = createSocketController }: RootProps) => {
   const [{ controller, start, store }] = useState(() => {

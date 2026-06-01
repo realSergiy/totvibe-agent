@@ -1,4 +1,4 @@
-import { type DisplayMessage, type Role, theme } from "@totvibe/view";
+import { type DisplayMessage, type Role, theme } from '@totvibe/view';
 
 const ROLE_COLOR: Record<Role, string> = {
   assistant: theme.assistant,
@@ -7,12 +7,14 @@ const ROLE_COLOR: Record<Role, string> = {
 };
 
 const ROLE_LABEL: Record<Role, string> = {
-  assistant: "totvibe",
-  tool: "tool",
-  user: "you",
+  assistant: 'totvibe',
+  tool: 'tool',
+  user: 'you',
 };
 
-export const MessageView = ({ message }: { message: DisplayMessage }) => <box style={{ flexDirection: "column" }}>
-      <text fg={ROLE_COLOR[message.role]}>{ROLE_LABEL[message.role]}</text>
-      <text>{message.text}</text>
-    </box>;
+export const MessageView = ({ message }: { message: DisplayMessage }) => (
+  <box style={{ flexDirection: 'column' }}>
+    <text fg={ROLE_COLOR[message.role]}>{ROLE_LABEL[message.role]}</text>
+    <text>{message.text}</text>
+  </box>
+);

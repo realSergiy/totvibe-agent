@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext } from 'react';
 
 export type AgentController = {
   cancel(): void;
@@ -8,14 +8,14 @@ export type AgentController = {
   selectProvider(providerName: string, modelId: string): void;
   submit(text: string): void;
   testConnection(providerName: string): void;
-}
+};
 
-export const ControllerContext = createContext<AgentController | null>(null);
+export const ControllerContext = createContext<AgentController | undefined>(undefined);
 
 export const useController = () => {
   const controller = useContext(ControllerContext);
   if (!controller) {
-    throw new Error("useController must be used within a ControllerContext provider");
+    throw new Error('useController must be used within a ControllerContext provider');
   }
   return controller;
 };

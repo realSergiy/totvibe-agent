@@ -1,8 +1,8 @@
-import type { ZodType } from "zod";
+import type { ZodType } from 'zod';
 
-import type { Middleware, ToolInvocation } from "./pipeline";
+import type { Middleware, ToolInvocation } from './pipeline';
 
-import { tool, type ToolSet } from "./ai-core";
+import { tool, type ToolSet } from './ai-core';
 
 export type AnyToolDef = ToolDef;
 
@@ -11,18 +11,18 @@ export type ToolCallOutcome = {
   text: string;
   toolCallId: string;
   toolName: string;
-}
+};
 
 export type ToolCallRequest = {
   input: unknown;
   toolCallId: string;
   toolName: string;
-}
+};
 
 export type ToolContext = {
   cwd: string;
   signal?: AbortSignal;
-}
+};
 
 export type ToolDef<Input = unknown> = {
   description: string;
@@ -30,9 +30,9 @@ export type ToolDef<Input = unknown> = {
   inputSchema: ZodType<Input>;
   name: string;
   risk: ToolRisk;
-}
+};
 
-export type ToolRisk = "mutate" | "read";
+export type ToolRisk = 'mutate' | 'read';
 
 export const buildModelToolSet = (definitions: AnyToolDef[]) => {
   const toolSet: ToolSet = {};
@@ -47,7 +47,12 @@ export const buildModelToolSet = (definitions: AnyToolDef[]) => {
 
 export const defineTool = <Input>(definition: ToolDef<Input>): ToolDef<Input> => definition;
 
-export const executeToolCall = async (definitions: AnyToolDef[], call: ToolCallRequest, context: ToolContext, middleware: Middleware) => {
+export const executeToolCall = async (
+  definitions: AnyToolDef[],
+  call: ToolCallRequest,
+  context: ToolContext,
+  middleware: Middleware,
+) => {
   const definition = findToolDefinition(definitions, call.toolName);
   if (!definition) {
     return {
@@ -63,9 +68,7 @@ export const executeToolCall = async (definitions: AnyToolDef[], call: ToolCallR
     risk: definition.risk,
   };
   try {
-    const text = await middleware(invocation, () =>
-      definition.execute(call.input, context),
-    );
+    const text = await middleware(invocation, () => definition.execute(call.input, context));
     return {
       isError: false,
       text,
@@ -83,12 +86,18 @@ export const executeToolCall = async (definitions: AnyToolDef[], call: ToolCallR
   }
 };
 
-export const findToolDefinition = (definitions: AnyToolDef[], name: string) => definitions.find((definition) => definition.name === name);
+export const findToolDefinition = (definitions: AnyToolDef[], name: string) =>
+  definitions.find(definition => definition.name === name);
 
-export const isReadOnly = (definition: AnyToolDef) => definition.risk === "read";
+export const isReadOnly = (definition: AnyToolDef) => definition.risk === 'read';
 
-export const runToolCalls = async (definitions: AnyToolDef[], calls: ToolCallRequest[], context: ToolContext, middleware: Middleware) => {
-  const outcomes = Array.from({length: calls.length});
+export const runToolCalls = async (
+  definitions: AnyToolDef[],
+  calls: ToolCallRequest[],
+  context: ToolContext,
+  middleware: Middleware,
+) => {
+  const outcomes: ToolCallOutcome[] = [];
   let index = 0;
   while (index < calls.length) {
     const call = calls[index];
@@ -116,4 +125,3 @@ export const runToolCalls = async (definitions: AnyToolDef[], calls: ToolCallReq
   }
   return outcomes;
 };
-

@@ -1,9 +1,9 @@
-import type { ModelMessage } from "ai";
+import type { ModelMessage } from 'ai';
 
-import { findLatestSessionId, loadSessionMessages } from "@totvibe/core";
-import { DEFAULT_PROVIDER, findProvider, type ProviderInfo, PROVIDERS } from "@totvibe/protocol";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { findLatestSessionId, loadSessionMessages } from '@totvibe/core';
+import { DEFAULT_PROVIDER, findProvider, type ProviderInfo, PROVIDERS } from '@totvibe/protocol';
+import { homedir } from 'node:os';
+import path from 'node:path';
 
 const SYSTEM_PROMPT = `You are totvibe, a minimalist coding assistant running in a terminal.
 You operate inside the user's current working directory. Use the tools to read files, list directories, write files, and run shell commands.
@@ -14,7 +14,7 @@ export type CliOptions = {
   continueLast?: boolean;
   resume?: string;
   sandbox: boolean;
-}
+};
 
 export type InitialConfig = {
   autoApprove: boolean;
@@ -25,22 +25,22 @@ export type InitialConfig = {
   paths: StorePaths;
   providerName: string;
   sandbox: boolean;
-  sandboxNet: "inherit" | "none";
+  sandboxNet: 'inherit' | 'none';
   sessionId: string;
   system: string;
-}
+};
 
 type AgentLimits = {
   approvalTimeoutMs: number;
   maxSteps: number;
   tokenBudget: number;
   wallClockMs: number;
-}
+};
 
 type StorePaths = {
   auditPath: string;
   sessionsDir: string;
-}
+};
 
 const parsePositiveInt = (raw: string | undefined) => {
   if (raw === undefined) return;
@@ -49,13 +49,13 @@ const parsePositiveInt = (raw: string | undefined) => {
 };
 
 const buildLimits = (provider: ProviderInfo) => ({
-    approvalTimeoutMs: parsePositiveInt(process.env.TOTVIBE_APPROVAL_TIMEOUT_MS) ?? 0,
-    maxSteps: parsePositiveInt(process.env.TOTVIBE_MAX_STEPS) ?? 24,
-    tokenBudget: parsePositiveInt(process.env.TOTVIBE_TOKEN_BUDGET) ?? provider.metadata.contextWindow * 8,
-    wallClockMs: parsePositiveInt(process.env.TOTVIBE_WALL_CLOCK_MS) ?? 600_000,
-  });
+  approvalTimeoutMs: parsePositiveInt(process.env.TOTVIBE_APPROVAL_TIMEOUT_MS) ?? 0,
+  maxSteps: parsePositiveInt(process.env.TOTVIBE_MAX_STEPS) ?? 24,
+  tokenBudget: parsePositiveInt(process.env.TOTVIBE_TOKEN_BUDGET) ?? provider.metadata.contextWindow * 8,
+  wallClockMs: parsePositiveInt(process.env.TOTVIBE_WALL_CLOCK_MS) ?? 600_000,
+});
 
-const resolveDataDir = () => process.env.TOTVIBE_DATA_DIR ?? join(homedir(), ".totvibe");
+const resolveDataDir = () => process.env.TOTVIBE_DATA_DIR ?? path.join(homedir(), '.totvibe');
 
 const resolveSession = async (cli: CliOptions, paths: StorePaths) => {
   const requestedId = cli.resume ?? (cli.continueLast ? await findLatestSessionId(paths.sessionsDir) : undefined);
@@ -68,17 +68,17 @@ export const loadInitialConfig = async (cli: CliOptions) => {
   const providerName = (process.env.AI_PROVIDER ?? DEFAULT_PROVIDER.name).toLowerCase();
   const provider = findProvider(providerName);
   if (!provider) {
-    const known = PROVIDERS.map((entry) => entry.name).join(", ");
+    const known = PROVIDERS.map(entry => entry.name).join(', ');
     throw new Error(`Unknown AI_PROVIDER "${providerName}". Choose one of: ${known}.`);
   }
   const dataDir = resolveDataDir();
   const paths: StorePaths = {
-    auditPath: join(dataDir, "audit.jsonl"),
-    sessionsDir: join(dataDir, "sessions"),
+    auditPath: path.join(dataDir, 'audit.jsonl'),
+    sessionsDir: path.join(dataDir, 'sessions'),
   };
   const { initialMessages, sessionId } = await resolveSession(cli, paths);
   return {
-    autoApprove: process.env.AUTO_APPROVE === "1",
+    autoApprove: process.env.AUTO_APPROVE === '1',
     cwd: process.cwd(),
     initialMessages,
     limits: buildLimits(provider),
@@ -86,8 +86,8 @@ export const loadInitialConfig = async (cli: CliOptions) => {
     paths,
     providerName,
     sandbox: cli.sandbox,
-    sandboxNet: process.env.TOTVIBE_SANDBOX_NET === "inherit" ? "inherit" : "none",
+    sandboxNet: process.env.TOTVIBE_SANDBOX_NET === 'inherit' ? 'inherit' : 'none',
     sessionId,
     system: SYSTEM_PROMPT,
-  };
+  } satisfies InitialConfig;
 };
