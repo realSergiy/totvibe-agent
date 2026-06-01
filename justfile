@@ -44,3 +44,13 @@ build-sandbox:
 alias cl := clone
 clone repo ref="":
     scripts/clone_reference.py {{ repo }} {{ ref }}
+
+alias u := upgrade
+upgrade *args='':
+    bun run upgrade -- {{ args }}
+
+alias ui := upgrade-interactive
+# Interactively select and apply upgrades, then reinstall.
+upgrade-interactive:
+    bun run upgrade -- -i
+    bun install

@@ -3,10 +3,29 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "packageManager": "bun@1.3.14",
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "knip": "^6.15.0",
+      "npm-check-updates": "^22.2.1",
+      "prettier": "^3.8.3",
+      "typescript": "^6.0.3",
+      "typescript-eslint": "^8.60.0",
+      "@eslint/js": "^10.0.1",
+      "@types/bun": "latest",
+      "@types/react": "^19",
+      "eslint": "^10.4.1",
+      "jiti": "^2.7.0",
+      "react": "^19"
+    }
+  },
   "scripts": {
     "start": "bun run apps/tui/src/index.tsx",
     "serve": "bun run apps/tui/src/index.tsx --serve",
@@ -18,19 +37,21 @@
     "test": "bun run test:tui && bun run test:web",
     "test:tui": "bun test packages/tests/src/tui packages/tests/src/wire.test.ts",
     "test:web": "bun test --preload ./packages/tests/src/web/happydom.ts packages/tests/src/web",
-    "build:sandbox": "bash scripts/build-sandbox.sh"
+    "build:sandbox": "bash scripts/build-sandbox.sh",
+    "upgrade": "npm-check-updates --root --workspaces --format group"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
+    "npm-check-updates": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "@eslint/js": "catalog:",
     "@totvibe/tsconfig": "workspace:*",
-    "@types/bun": "latest",
-    "@types/react": "^19",
-    "eslint": "^10.4.1",
-    "jiti": "^2.7.0",
-    "knip": "^6.15.0",
-    "prettier": "^3.8.3",
-    "react": "^19",
-    "typescript": "^5",
-    "typescript-eslint": "^8.60.0"
+    "@types/bun": "catalog:",
+    "@types/react": "catalog:",
+    "eslint": "catalog:",
+    "jiti": "catalog:",
+    "knip": "catalog:",
+    "react": "catalog:",
+    "typescript-eslint": "catalog:"
   }
 }
