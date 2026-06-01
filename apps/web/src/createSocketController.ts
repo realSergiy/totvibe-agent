@@ -1,39 +1,40 @@
-import { applyServerEvent, type AgentController, type Store } from "@totvibe/view";
 import type { ClientCommand, ServerEvent } from "@totvibe/protocol";
 
-export interface WebController {
+import { type AgentController, applyServerEvent, type Store } from "@totvibe/view";
+
+export type WebController = {
   controller: AgentController;
   start(): void;
 }
 
-export function createSocketController(store: Store): WebController {
+export const createSocketController = (store: Store) => {
   const socketUrl = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`;
-  let socket: WebSocket | null = null;
+  let socket: null | WebSocket = null;
   const send = (command: ClientCommand): void => {
     socket?.send(JSON.stringify(command));
   };
 
   const controller: AgentController = {
-    submit: (text) => {
-      send({ type: "submit", text });
-    },
     cancel: () => {
       send({ type: "cancel" });
     },
-    resolveApproval: (granted) => {
-      send({ type: "approve", granted });
-    },
-    selectProvider: (providerName, modelId) => {
-      send({ type: "select-provider", providerName, modelId });
-    },
-    saveApiKey: (providerName, apiKey) => {
-      send({ type: "save-api-key", providerName, apiKey });
-    },
-    testConnection: (providerName) => {
-      send({ type: "test-connection", providerName });
-    },
     openKeyPage: (url) => {
       window.open(url, "_blank", "noopener");
+    },
+    resolveApproval: (granted) => {
+      send({ granted, type: "approve" });
+    },
+    saveApiKey: (providerName, apiKey) => {
+      send({ apiKey, providerName, type: "save-api-key" });
+    },
+    selectProvider: (providerName, modelId) => {
+      send({ modelId, providerName, type: "select-provider" });
+    },
+    submit: (text) => {
+      send({ text, type: "submit" });
+    },
+    testConnection: (providerName) => {
+      send({ providerName, type: "test-connection" });
     },
   };
 
@@ -46,4 +47,4 @@ export function createSocketController(store: Store): WebController {
       };
     },
   };
-}
+};

@@ -1,15 +1,16 @@
-import { useAtomValue } from "jotai";
 import { messagesAtom } from "@totvibe/view";
+import { useAtomValue } from "jotai";
+
 import { Banner } from "./Banner";
 import { MessageView } from "./MessageView";
 
-export function Conversation() {
+export const Conversation = () => {
   const messages = useAtomValue(messagesAtom);
   return (
     <scrollbox
-      style={{ flexGrow: 1, border: true, borderStyle: "rounded", padding: 1, gap: 1 }}
       stickyScroll
       stickyStart="bottom"
+      style={{ border: true, borderStyle: "rounded", flexGrow: 1, gap: 1, padding: 1 }}
     >
       {messages.length === 0 && <Banner />}
       {messages.map((message) => (
@@ -17,4 +18,4 @@ export function Conversation() {
       ))}
     </scrollbox>
   );
-}
+};

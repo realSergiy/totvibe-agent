@@ -14,23 +14,21 @@ const PROVIDER_KEY_ENV_VARS = [
 
 export const CONNECTED_PROVIDER_KEYS = { DASHSCOPE_API_KEY: "fixture-key-qwen" };
 
-export function buildConfig(): InitialConfig {
-  return {
-    providerName: "qwen",
-    modelId: "qwen3.7-max",
-    system: "fixture system prompt",
-    cwd: "/home/test/project",
+export const buildConfig = () => ({
     autoApprove: false,
+    cwd: "/home/test/project",
+    initialMessages: [],
+    limits: { approvalTimeoutMs: 0, maxSteps: 24, tokenBudget: 1_000_000, wallClockMs: 600_000 },
+    modelId: "qwen3.7-max",
+    paths: { auditPath: "/tmp/totvibe-test/audit.jsonl", sessionsDir: "/tmp/totvibe-test/sessions" },
+    providerName: "qwen",
     sandbox: true,
     sandboxNet: "none",
-    limits: { maxSteps: 24, wallClockMs: 600_000, tokenBudget: 1_000_000, approvalTimeoutMs: 0 },
-    paths: { sessionsDir: "/tmp/totvibe-test/sessions", auditPath: "/tmp/totvibe-test/audit.jsonl" },
     sessionId: "fixture-session",
-    initialMessages: [],
-  };
-}
+    system: "fixture system prompt",
+  });
 
-export function isolateProviderEnv(connectedKeys: Record<string, string>): () => void {
+export const isolateProviderEnv = (connectedKeys: Record<string, string>) => {
   const previous = new Map<string, string | undefined>();
   for (const name of PROVIDER_KEY_ENV_VARS) {
     previous.set(name, process.env[name]);
@@ -45,13 +43,13 @@ export function isolateProviderEnv(connectedKeys: Record<string, string>): () =>
       else process.env[name] = value;
     }
   };
-}
+};
 
-export function stubFetchOk(): () => void {
+export const stubFetchOk = () => {
   const original = globalThis.fetch;
   globalThis.fetch = (() =>
     Promise.resolve(new Response(null, { status: 200 }))) as unknown as typeof fetch;
   return () => {
     globalThis.fetch = original;
   };
-}
+};

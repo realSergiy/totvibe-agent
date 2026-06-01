@@ -1,50 +1,53 @@
 import type { Middleware, ToolRisk } from "@totvibe/core";
-import { decidePolicy, resolveAction, type PolicyMode } from "./policy";
 
-export * from "./policy";
+import { decidePolicy, type PolicyMode, resolveAction } from "./policy";
+
 export * from "./ledger";
+export * from "./policy";
 
-export interface ApprovalRequest {
+export type ApprovalDecision = "allow" | "approved" | "denied" | "deny" | "timeout";
+
+export type ApprovalRequest = {
+  command?: string;
+  input: unknown;
   name: string;
   risk: ToolRisk;
-  input: unknown;
-  command?: string;
 }
 
-export type ApprovalDecision = "allow" | "deny" | "approved" | "denied" | "timeout";
-
-export interface PolicyDecisionRecord {
+export type PolicyDecisionRecord = {
+  absolute: boolean;
+  decision: ApprovalDecision;
+  input: unknown;
+  reason: string;
+  risk: ToolRisk;
   time: string;
   tool: string;
-  risk: ToolRisk;
-  decision: ApprovalDecision;
-  reason: string;
-  absolute: boolean;
-  input: unknown;
 }
 
-export interface PolicyGateOptions {
+export type PolicyGateOptions = {
+  approvalTimeoutMs?: number;
   approve: (request: ApprovalRequest) => Promise<boolean>;
   mode?: PolicyMode;
-  approvalTimeoutMs?: number;
   onDecision?: (record: PolicyDecisionRecord) => void;
 }
 
-export function policyGate(options: PolicyGateOptions): Middleware {
+type AskOutcome = "timeout" | boolean;
+
+export const policyGate = (options: PolicyGateOptions) => {
   const mode = options.mode ?? "default";
   return async (invocation, next) => {
     const action = resolveAction(invocation.name, invocation.risk, invocation.input);
     const verdict = decidePolicy(action, mode);
 
-    const record = (decision: ApprovalDecision, reason: string): void => {
+    const record = (decision: ApprovalDecision, reason: string) => {
       options.onDecision?.({
+        absolute: verdict.absolute,
+        decision,
+        input: action.input,
+        reason,
+        risk: action.risk,
         time: new Date().toISOString(),
         tool: action.name,
-        risk: action.risk,
-        decision,
-        reason,
-        absolute: verdict.absolute,
-        input: action.input,
       });
     };
 
@@ -59,7 +62,7 @@ export function policyGate(options: PolicyGateOptions): Middleware {
 
     const granted = await askWithTimeout(
       options.approve,
-      { name: action.name, risk: action.risk, input: action.input, command: action.command },
+      { command: action.command, input: action.input, name: action.name, risk: action.risk },
       options.approvalTimeoutMs,
     );
     if (granted === "timeout") {
@@ -73,15 +76,9 @@ export function policyGate(options: PolicyGateOptions): Middleware {
     record("approved", "the user approved it");
     return next();
   };
-}
+};
 
-type AskOutcome = boolean | "timeout";
-
-async function askWithTimeout(
-  approve: (request: ApprovalRequest) => Promise<boolean>,
-  request: ApprovalRequest,
-  timeoutMs?: number,
-): Promise<AskOutcome> {
+const askWithTimeout = async (approve: (request: ApprovalRequest) => Promise<boolean>, request: ApprovalRequest, timeoutMs?: number) => {
   if (!timeoutMs || timeoutMs <= 0) return approve(request);
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<AskOutcome>((resolve) => {
@@ -94,11 +91,11 @@ async function askWithTimeout(
   } finally {
     if (timer) clearTimeout(timer);
   }
-}
+};
 
-function denialFeedback(name: string, reason: string, absolute: boolean): string {
+const denialFeedback = (name: string, reason: string, absolute: boolean) => {
   const head = absolute
     ? `Blocked: "${name}" is on the absolute-deny list (${reason}) and cannot be approved.`
     : `Denied: "${name}" was not run (${reason}).`;
   return `${head} Re-read the request and choose a safer approach instead of retrying the same action.`;
-}
+};

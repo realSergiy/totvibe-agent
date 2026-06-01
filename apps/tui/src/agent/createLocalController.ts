@@ -1,38 +1,39 @@
-import { applyServerEvent, type AgentController, type Store } from "@totvibe/view";
 import { createRuntime, type InitialConfig } from "@totvibe/runtime";
+import { type AgentController, applyServerEvent, type Store } from "@totvibe/view";
+
 import { openKeyPage } from "../actions";
 
-export interface LocalController {
+export type LocalController = {
   controller: AgentController;
   start: () => void;
 }
 
-export function createLocalController(config: InitialConfig, store: Store): LocalController {
+export const createLocalController = (config: InitialConfig, store: Store) => {
   const runtime = createRuntime(config);
   runtime.subscribe((event) => {
     applyServerEvent(store, event);
   });
 
   const controller: AgentController = {
-    submit: (text) => {
-      runtime.submit(text);
-    },
     cancel: () => {
       runtime.cancel();
     },
+    openKeyPage,
     resolveApproval: (granted) => {
       runtime.resolveApproval(granted);
-    },
-    selectProvider: (providerName, modelId) => {
-      runtime.selectProvider(providerName, modelId);
     },
     saveApiKey: (providerName, apiKey) => {
       void runtime.saveApiKey(providerName, apiKey);
     },
+    selectProvider: (providerName, modelId) => {
+      runtime.selectProvider(providerName, modelId);
+    },
+    submit: (text) => {
+      runtime.submit(text);
+    },
     testConnection: (providerName) => {
       void runtime.testConnection(providerName);
     },
-    openKeyPage,
   };
 
   return {
@@ -41,4 +42,4 @@ export function createLocalController(config: InitialConfig, store: Store): Loca
       runtime.start();
     },
   };
-}
+};

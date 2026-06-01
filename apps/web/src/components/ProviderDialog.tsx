@@ -1,6 +1,4 @@
-import { useState } from "react";
-import { useAtomValue, useSetAtom } from "jotai";
-import { DEFAULT_PROVIDER, PROVIDERS, type ProviderInfo } from "@totvibe/protocol";
+import { DEFAULT_PROVIDER, type ProviderInfo, PROVIDERS } from "@totvibe/protocol";
 import {
   connectedProvidersAtom,
   connectionStatusAtom,
@@ -11,8 +9,10 @@ import {
   theme,
   useController,
 } from "@totvibe/view";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useState } from "react";
 
-export function ProviderDialog() {
+export const ProviderDialog = () => {
   const controller = useController();
   const activeProviderName = useAtomValue(providerNameAtom);
   const activeModelId = useAtomValue(modelIdAtom);
@@ -58,13 +58,13 @@ export function ProviderDialog() {
       <div className="provider-list">
         {PROVIDERS.map((provider, providerIndex) => (
           <button
-            type="button"
-            key={provider.name}
             className={`provider-row${providerIndex === highlightedIndex ? " highlighted" : ""}`}
-            style={{ color: providerIndex === highlightedIndex ? theme.text : theme.muted }}
+            key={provider.name}
             onClick={() => {
               setHighlightedIndex(providerIndex);
             }}
+            style={{ color: providerIndex === highlightedIndex ? theme.text : theme.muted }}
+            type="button"
           >
             {isConnected(provider) ? "●" : "○"} {provider.label} · {resolveModelId(provider)}
           </button>
@@ -80,17 +80,17 @@ export function ProviderDialog() {
       <div className="field">
         <span style={{ color: theme.muted }}>API key</span>
         <input
-          type="password"
-          value={keyValue}
-          placeholder={`paste ${highlightedProvider.apiKeyEnv}`}
           onChange={(event) => {
             setKeyValue(event.target.value);
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter") saveApiKey();
           }}
+          placeholder={`paste ${highlightedProvider.apiKeyEnv}`}
+          type="password"
+          value={keyValue}
         />
-        <button type="button" onClick={saveApiKey}>
+        <button onClick={saveApiKey} type="button">
           Save
         </button>
       </div>
@@ -98,20 +98,20 @@ export function ProviderDialog() {
       <div className="field">
         <span style={{ color: theme.muted }}>Model</span>
         <input
-          value={modelValue}
-          placeholder={resolveModelId(highlightedProvider)}
           onChange={(event) => {
             setModelValue(event.target.value);
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter") activateProvider(highlightedProvider);
           }}
+          placeholder={resolveModelId(highlightedProvider)}
+          value={modelValue}
         />
         <button
-          type="button"
           onClick={() => {
             activateProvider(highlightedProvider);
           }}
+          type="button"
         >
           Use
         </button>
@@ -119,28 +119,28 @@ export function ProviderDialog() {
 
       <div className="field">
         <button
-          type="button"
           onClick={() => {
             controller.testConnection(highlightedProvider.name);
           }}
+          type="button"
         >
           Test
         </button>
         <button
-          type="button"
           onClick={() => {
             controller.openKeyPage(highlightedProvider.keyUrl);
             setNotice(`Opening ${highlightedProvider.keyUrl}`);
           }}
+          type="button"
         >
           Open key page
         </button>
         {canClose && (
           <button
-            type="button"
             onClick={() => {
               setProviderDialogOpen(false);
             }}
+            type="button"
           >
             Close
           </button>
@@ -150,4 +150,4 @@ export function ProviderDialog() {
       {notice ? <div style={{ color: theme.highlight }}>{notice}</div> : null}
     </div>
   );
-}
+};

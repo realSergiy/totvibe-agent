@@ -1,9 +1,10 @@
-import { useAtomValue } from "jotai";
 import { messagesAtom } from "@totvibe/view";
+import { useAtomValue } from "jotai";
+
 import { Banner } from "./Banner";
 import { MessageView } from "./MessageView";
 
-export function Conversation() {
+export const Conversation = () => {
   const messages = useAtomValue(messagesAtom);
   return (
     <div className="conversation">
@@ -13,4 +14,4 @@ export function Conversation() {
       ))}
     </div>
   );
-}
+};

@@ -10,6 +10,6 @@
   "dependencies": {
     "@totvibe/core": "workspace:*",
     "@totvibe/sandbox": "workspace:*",
-    "zod": "^4"
+    "zod": "catalog:"
   }
 }

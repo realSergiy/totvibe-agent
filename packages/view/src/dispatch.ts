@@ -1,14 +1,10 @@
 import type { AgentEvent } from "@totvibe/core";
 import type { ServerEvent } from "@totvibe/protocol";
+
 import type { Store } from "./state/store";
+
+import { formatToolInput } from "./format";
 import { appendMessageAtom, messagesAtom } from "./state/conversation";
-import {
-  agentStatusAtom,
-  cwdAtom,
-  isStreamingAtom,
-  pendingApprovalAtom,
-  sandboxStatusAtom,
-} from "./state/session";
 import {
   connectedProvidersAtom,
   connectionStatusAtom,
@@ -16,11 +12,34 @@ import {
   noticeAtom,
   providerNameAtom,
 } from "./state/providers";
+import {
+  agentStatusAtom,
+  cwdAtom,
+  isStreamingAtom,
+  pendingApprovalAtom,
+  sandboxStatusAtom,
+} from "./state/session";
 import { isProviderDialogOpenAtom } from "./state/ui";
-import { formatToolInput } from "./format";
 
-function applyAgentEvent(store: Store, event: AgentEvent): void {
+const applyAgentEvent = (store: Store, event: AgentEvent) => {
   switch (event.type) {
+    case "aborted": {
+      store.set(isStreamingAtom, false);
+      store.set(agentStatusAtom, "aborted");
+      break;
+    }
+    case "error": {
+      store.set(appendMessageAtom, { role: "tool", text: `error: ${event.error}` });
+      store.set(isStreamingAtom, false);
+      store.set(agentStatusAtom, "error");
+      break;
+    }
+    case "message":
+    case "reasoning":
+    case "tool_result":
+    case "turn_start": {
+      break;
+    }
     case "text": {
       const messages = store.get(messagesAtom);
       const last = messages.at(-1);
@@ -34,39 +53,48 @@ function applyAgentEvent(store: Store, event: AgentEvent): void {
       }
       break;
     }
-    case "tool_call":
+    case "tool_call": {
       store.set(appendMessageAtom, {
         role: "tool",
         text: `⏺ ${event.name} ${formatToolInput(event.input)}`,
       });
       break;
-    case "tool_error":
+    }
+    case "tool_error": {
       store.set(appendMessageAtom, { role: "tool", text: `✗ ${event.name}: ${event.error}` });
       break;
-    case "turn_end":
+    }
+    case "turn_end": {
       store.set(isStreamingAtom, false);
       store.set(agentStatusAtom, `ready · ${event.finishReason}`);
       break;
-    case "error":
-      store.set(appendMessageAtom, { role: "tool", text: `error: ${event.error}` });
-      store.set(isStreamingAtom, false);
-      store.set(agentStatusAtom, "error");
-      break;
-    case "aborted":
-      store.set(isStreamingAtom, false);
-      store.set(agentStatusAtom, "aborted");
-      break;
-    case "turn_start":
-    case "reasoning":
-    case "tool_result":
-    case "message":
-      break;
+    }
   }
-}
+};
 
-export function applyServerEvent(store: Store, event: ServerEvent): void {
+export const applyServerEvent = (store: Store, event: ServerEvent) => {
   switch (event.type) {
-    case "init":
+    case "agent": {
+      applyAgentEvent(store, event.event);
+      break;
+    }
+    case "agent-status": {
+      store.set(agentStatusAtom, event.status);
+      break;
+    }
+    case "approval-request": {
+      store.set(pendingApprovalAtom, event.request);
+      break;
+    }
+    case "connected-providers": {
+      store.set(connectedProvidersAtom, new Set(event.names));
+      break;
+    }
+    case "connection-status": {
+      store.set(connectionStatusAtom, event.status);
+      break;
+    }
+    case "init": {
       store.set(messagesAtom, []);
       store.set(isStreamingAtom, false);
       store.set(agentStatusAtom, "ready");
@@ -77,39 +105,31 @@ export function applyServerEvent(store: Store, event: ServerEvent): void {
       store.set(modelIdAtom, event.session.modelId);
       store.set(isProviderDialogOpenAtom, event.session.isProviderDialogOpen);
       break;
-    case "connected-providers":
-      store.set(connectedProvidersAtom, new Set(event.names));
+    }
+    case "message": {
+      store.set(appendMessageAtom, { role: event.role, text: event.text });
       break;
-    case "agent":
-      applyAgentEvent(store, event.event);
+    }
+    case "notice": {
+      store.set(noticeAtom, event.text);
       break;
-    case "approval-request":
-      store.set(pendingApprovalAtom, event.request);
-      break;
-    case "agent-status":
-      store.set(agentStatusAtom, event.status);
-      break;
-    case "streaming":
-      store.set(isStreamingAtom, event.streaming);
-      break;
-    case "connection-status":
-      store.set(connectionStatusAtom, event.status);
-      break;
-    case "sandbox-status":
-      store.set(sandboxStatusAtom, event.status);
-      break;
-    case "provider-changed":
+    }
+    case "provider-changed": {
       store.set(providerNameAtom, event.providerName);
       store.set(modelIdAtom, event.modelId);
       break;
-    case "provider-dialog":
+    }
+    case "provider-dialog": {
       store.set(isProviderDialogOpenAtom, event.open);
       break;
-    case "notice":
-      store.set(noticeAtom, event.text);
+    }
+    case "sandbox-status": {
+      store.set(sandboxStatusAtom, event.status);
       break;
-    case "message":
-      store.set(appendMessageAtom, { role: event.role, text: event.text });
+    }
+    case "streaming": {
+      store.set(isStreamingAtom, event.streaming);
       break;
+    }
   }
-}
+};

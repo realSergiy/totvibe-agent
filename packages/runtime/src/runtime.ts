@@ -1,46 +1,47 @@
+import type { LanguageModel } from "ai";
+
 import {
   compose,
   createSession,
   EventBus,
   runAgent,
-  SessionStore,
   type Session,
+  SessionStore,
 } from "@totvibe/core";
-import { createBuiltinTools } from "@totvibe/tools";
-import { probeSandbox, SandboxState } from "@totvibe/sandbox";
-import { AuditLedger, policyGate, type ApprovalRequest } from "@totvibe/safety";
-import type { LanguageModel } from "ai";
 import {
   DEFAULT_PROVIDER,
   findProvider,
   PROVIDERS,
   type ServerEvent,
 } from "@totvibe/protocol";
-import { buildModel, validateApiKey } from "./providers/client";
-import type { InitialConfig } from "./config";
-import { bunHost, isConnected, type RuntimeHost } from "./host";
+import { type ApprovalRequest, AuditLedger, policyGate } from "@totvibe/safety";
+import { probeSandbox, SandboxState } from "@totvibe/sandbox";
+import { createBuiltinTools } from "@totvibe/tools";
 
-export interface AgentRuntime {
-  start(): void;
-  submit(text: string): void;
+import type { InitialConfig } from "./config";
+
+import { bunHost, isConnected, type RuntimeHost } from "./host";
+import { buildModel, validateApiKey } from "./providers/client";
+
+export type AgentRuntime = {
   cancel(): void;
   resolveApproval(granted: boolean): void;
-  selectProvider(providerName: string, modelId: string): void;
   saveApiKey(providerName: string, apiKey: string): Promise<void>;
-  testConnection(providerName: string): Promise<void>;
+  selectProvider(providerName: string, modelId: string): void;
+  start(): void;
+  submit(text: string): void;
   subscribe(listener: (event: ServerEvent) => void): () => void;
+  testConnection(providerName: string): Promise<void>;
 }
 
-function shortenPath(path: string): string {
+const shortenPath = (path: string) => {
   const home = process.env.HOME;
   return home && path.startsWith(home) ? `~${path.slice(home.length)}` : path;
-}
+};
 
-function connectedProviderNames(): string[] {
-  return PROVIDERS.filter(isConnected).map((provider) => provider.name);
-}
+const connectedProviderNames = () => PROVIDERS.filter(isConnected).map((provider) => provider.name);
 
-export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost): AgentRuntime {
+export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost) => {
   const session: Session = createSession(config.sessionId, config.initialMessages);
   const sandbox = new SandboxState(config.cwd);
   const sessionStore = new SessionStore(config.paths.sessionsDir, config.sessionId);
@@ -49,7 +50,7 @@ export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost
   eventBus.subscribe(sessionStore.persist);
 
   const listeners = new Set<(event: ServerEvent) => void>();
-  const emit = (event: ServerEvent): void => {
+  const emit = (event: ServerEvent) => {
     for (const listener of listeners) listener(event);
   };
 
@@ -61,15 +62,15 @@ export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost
   const approve = (request: ApprovalRequest) =>
     new Promise<boolean>((resolve) => {
       approvalResolver = resolve;
-      emit({ type: "approval-request", request });
-      emit({ type: "agent-status", status: "approval required" });
+      emit({ request, type: "approval-request" });
+      emit({ status: "approval required", type: "agent-status" });
     });
 
   const middleware = compose(
     policyGate({
+      approvalTimeoutMs: config.limits.approvalTimeoutMs,
       approve,
       mode: config.autoApprove ? "auto" : "default",
-      approvalTimeoutMs: config.limits.approvalTimeoutMs,
       onDecision: auditLedger.record,
     }),
   );
@@ -78,59 +79,54 @@ export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost
     sandbox: config.sandbox,
   });
 
-  function doSelectProvider(providerName: string, modelId: string): void {
+  const doSelectProvider = (providerName: string, modelId: string) => {
     activeProviderName = providerName;
     activeModelId = modelId.trim() || (findProvider(providerName)?.defaultModel ?? modelId);
-    emit({ type: "provider-changed", providerName: activeProviderName, modelId: activeModelId });
-    emit({ type: "provider-dialog", open: false });
+    emit({ modelId: activeModelId, providerName: activeProviderName, type: "provider-changed" });
+    emit({ open: false, type: "provider-dialog" });
     refreshConnection();
-  }
+  };
 
-  function refreshConnection(): void {
+  const refreshConnection = () => {
     const provider = findProvider(activeProviderName) ?? DEFAULT_PROVIDER;
     const apiKey = process.env[provider.apiKeyEnv]?.trim();
     if (!apiKey) {
-      emit({ type: "connection-status", status: "no-key" });
+      emit({ status: "no-key", type: "connection-status" });
       return;
     }
-    emit({ type: "connection-status", status: "checking" });
+    emit({ status: "checking", type: "connection-status" });
     void validateApiKey(provider, apiKey).then((check) => {
       emit({
-        type: "connection-status",
         status: check.ok ? "ok" : check.rejected ? "rejected" : "unreachable",
+        type: "connection-status",
       });
     });
-  }
+  };
 
-  async function runTurn(
-    model: LanguageModel,
-    fallbackModel: LanguageModel | undefined,
-    text: string,
-    signal: AbortSignal,
-  ): Promise<void> {
+  const runTurn = async (model: LanguageModel, fallbackModel: LanguageModel | undefined, text: string, signal: AbortSignal) => {
     try {
       const events = runAgent(session, text, {
-        model,
-        fallbackModel,
-        system: config.system,
-        tools,
-        middleware,
         cwd: config.cwd,
+        fallbackModel,
         maxSteps: config.limits.maxSteps,
-        wallClockMs: config.limits.wallClockMs,
-        tokenBudget: config.limits.tokenBudget,
+        middleware,
+        model,
         signal,
+        system: config.system,
+        tokenBudget: config.limits.tokenBudget,
+        tools,
+        wallClockMs: config.limits.wallClockMs,
       });
       for await (const event of events) {
-        emit({ type: "agent", event });
+        emit({ event, type: "agent" });
         eventBus.publish(event);
       }
     } catch (error) {
       if (signal.aborted) {
-        emit({ type: "agent", event: { type: "aborted" } });
+        emit({ event: { type: "aborted" }, type: "agent" });
       } else {
         const message = error instanceof Error ? error.message : String(error);
-        emit({ type: "agent", event: { type: "error", error: message } });
+        emit({ event: { error: message, type: "error" }, type: "agent" });
       }
     } finally {
       abortController = null;
@@ -139,13 +135,54 @@ export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost
         await auditLedger.flushed();
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        emit({ type: "message", role: "tool", text: `could not persist session: ${message}` });
+        emit({ role: "tool", text: `could not persist session: ${message}`, type: "message" });
       }
     }
-  }
+  };
 
   return {
-    start() {
+    cancel: () => {
+      abortController?.abort();
+      abortController = null;
+    },
+
+    resolveApproval: (granted) => {
+      approvalResolver?.(granted);
+      approvalResolver = null;
+      emit({ request: null, type: "approval-request" });
+      emit({ status: "thinking…", type: "agent-status" });
+    },
+
+    saveApiKey: async (providerName, apiKey) => {
+      const provider = findProvider(providerName) ?? DEFAULT_PROVIDER;
+      emit({ text: `Verifying ${provider.apiKeyEnv}…`, type: "notice" });
+      const check = await validateApiKey(provider, apiKey);
+      if (check.rejected) {
+        emit({
+          text: `${provider.apiKeyEnv} ${check.reason ?? ""}. Check the key and try again.`,
+          type: "notice",
+        });
+        return;
+      }
+      await host.saveEnvVars({ [provider.apiKeyEnv]: apiKey });
+      emit({
+        text: check.ok
+          ? `Saved ${provider.apiKeyEnv} to .env · key verified`
+          : `Saved ${provider.apiKeyEnv} to .env · couldn't verify (${check.reason ?? ""})`,
+        type: "notice",
+      });
+      emit({ names: connectedProviderNames(), type: "connected-providers" });
+      doSelectProvider(
+        provider.name,
+        provider.name === activeProviderName ? activeModelId : provider.defaultModel,
+      );
+    },
+
+    selectProvider: (providerName, modelId) => {
+      doSelectProvider(providerName, modelId);
+    },
+
+    start: () => {
       const configuredProvider = findProvider(config.providerName) ?? DEFAULT_PROVIDER;
       const activeProvider = isConnected(configuredProvider)
         ? configuredProvider
@@ -155,43 +192,43 @@ export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost
         activeProvider === configuredProvider ? config.modelId : activeProvider.defaultModel;
 
       emit({
-        type: "init",
         session: {
           cwd: shortenPath(config.cwd),
-          providerName: activeProviderName,
-          modelId: activeModelId,
           isProviderDialogOpen: !isConnected(activeProvider),
+          modelId: activeModelId,
+          providerName: activeProviderName,
         },
+        type: "init",
       });
-      emit({ type: "connected-providers", names: connectedProviderNames() });
+      emit({ names: connectedProviderNames(), type: "connected-providers" });
       if (config.initialMessages.length > 0) {
         emit({
-          type: "message",
           role: "tool",
           text: `resumed session ${config.sessionId} (${String(config.initialMessages.length)} messages)`,
+          type: "message",
         });
       }
       refreshConnection();
       void probeSandbox(config.sandboxNet, config.sandbox).then((status) => {
-        emit({ type: "sandbox-status", status });
+        emit({ status, type: "sandbox-status" });
       });
     },
 
-    submit(text) {
+    submit: (text) => {
       const trimmedText = text.trim();
       if (/^\/provider(s)?$/.test(trimmedText)) {
-        emit({ type: "provider-dialog", open: true });
+        emit({ open: true, type: "provider-dialog" });
         return;
       }
       const grantPath = trimmedText.match(/^\/grant\s+(.+)$/)?.[1]?.trim();
       if (grantPath) {
         sandbox.grantReadWrite(grantPath);
-        emit({ type: "message", role: "tool", text: `granted read/write: ${grantPath}` });
+        emit({ role: "tool", text: `granted read/write: ${grantPath}`, type: "message" });
         return;
       }
-      emit({ type: "message", role: "user", text });
-      emit({ type: "streaming", streaming: true });
-      emit({ type: "agent-status", status: "thinking…" });
+      emit({ role: "user", text, type: "message" });
+      emit({ streaming: true, type: "streaming" });
+      emit({ status: "thinking…", type: "agent-status" });
       const provider = findProvider(activeProviderName) ?? DEFAULT_PROVIDER;
       const model = buildModel(provider, activeModelId);
       const fallbackProvider = PROVIDERS.find(
@@ -204,71 +241,30 @@ export function createRuntime(config: InitialConfig, host: RuntimeHost = bunHost
       void runTurn(model, fallbackModel, text, abortController.signal);
     },
 
-    cancel() {
-      abortController?.abort();
-      abortController = null;
-    },
-
-    resolveApproval(granted) {
-      approvalResolver?.(granted);
-      approvalResolver = null;
-      emit({ type: "approval-request", request: null });
-      emit({ type: "agent-status", status: "thinking…" });
-    },
-
-    selectProvider(providerName, modelId) {
-      doSelectProvider(providerName, modelId);
-    },
-
-    async saveApiKey(providerName, apiKey) {
-      const provider = findProvider(providerName) ?? DEFAULT_PROVIDER;
-      emit({ type: "notice", text: `Verifying ${provider.apiKeyEnv}…` });
-      const check = await validateApiKey(provider, apiKey);
-      if (check.rejected) {
-        emit({
-          type: "notice",
-          text: `${provider.apiKeyEnv} ${check.reason ?? ""}. Check the key and try again.`,
-        });
-        return;
-      }
-      await host.saveEnvVars({ [provider.apiKeyEnv]: apiKey });
-      emit({
-        type: "notice",
-        text: check.ok
-          ? `Saved ${provider.apiKeyEnv} to .env · key verified`
-          : `Saved ${provider.apiKeyEnv} to .env · couldn't verify (${check.reason ?? ""})`,
-      });
-      emit({ type: "connected-providers", names: connectedProviderNames() });
-      doSelectProvider(
-        provider.name,
-        provider.name === activeProviderName ? activeModelId : provider.defaultModel,
-      );
-    },
-
-    async testConnection(providerName) {
-      const provider = findProvider(providerName) ?? DEFAULT_PROVIDER;
-      const apiKey = process.env[provider.apiKeyEnv]?.trim();
-      if (!apiKey) {
-        emit({ type: "notice", text: `${provider.apiKeyEnv} is not set — press k to add a key.` });
-        return;
-      }
-      emit({ type: "notice", text: `Testing ${provider.label}…` });
-      const check = await validateApiKey(provider, apiKey);
-      emit({
-        type: "notice",
-        text: check.ok
-          ? `${provider.label}: connection OK`
-          : check.rejected
-            ? `${provider.label}: key rejected (${check.reason ?? ""})`
-            : `${provider.label}: unreachable (${check.reason ?? ""})`,
-      });
-    },
-
-    subscribe(listener) {
+    subscribe: (listener) => {
       listeners.add(listener);
       return () => {
         listeners.delete(listener);
       };
     },
+
+    testConnection: async (providerName) => {
+      const provider = findProvider(providerName) ?? DEFAULT_PROVIDER;
+      const apiKey = process.env[provider.apiKeyEnv]?.trim();
+      if (!apiKey) {
+        emit({ text: `${provider.apiKeyEnv} is not set — press k to add a key.`, type: "notice" });
+        return;
+      }
+      emit({ text: `Testing ${provider.label}…`, type: "notice" });
+      const check = await validateApiKey(provider, apiKey);
+      emit({
+        text: check.ok
+          ? `${provider.label}: connection OK`
+          : check.rejected
+            ? `${provider.label}: key rejected (${check.reason ?? ""})`
+            : `${provider.label}: unreachable (${check.reason ?? ""})`,
+        type: "notice",
+      });
+    },
   };
-}
+};

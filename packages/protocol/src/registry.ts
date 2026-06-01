@@ -1,117 +1,115 @@
-interface ModelMetadata {
+export type ProviderInfo = {
+  apiKeyEnv: string;
+  baseURL: string;
+  defaultModel: string;
+  keyHint: string;
+  keyUrl: string;
+  label: string;
+  metadata: ModelMetadata;
+  name: string;
+}
+
+type ModelMetadata = {
   contextWindow: number;
-  maxOutputTokens: number;
   costPerMTokInput: number;
   costPerMTokOutput: number;
+  maxOutputTokens: number;
   supportsReasoning: boolean;
 }
 
-export interface ProviderInfo {
-  name: string;
-  label: string;
-  apiKeyEnv: string;
-  defaultModel: string;
-  keyUrl: string;
-  keyHint: string;
-  baseURL: string;
-  metadata: ModelMetadata;
-}
-
 export const DEFAULT_PROVIDER: ProviderInfo = {
-  name: "glm",
-  label: "Z.ai GLM Coding Plan (Global)",
   apiKeyEnv: "ZAI_API_KEY",
-  defaultModel: "glm-5.1",
   baseURL: "https://api.z.ai/api/coding/paas/v4",
-  keyUrl: "https://z.ai/manage-apikey/apikey-list",
+  defaultModel: "glm-5.1",
   keyHint: "Z.ai → API keys (GLM Coding Plan).",
-  metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
+  keyUrl: "https://z.ai/manage-apikey/apikey-list",
+  label: "Z.ai GLM Coding Plan (Global)",
+  metadata: { contextWindow: 204_800, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, maxOutputTokens: 8192, supportsReasoning: true },
+  name: "glm",
 };
 
 export const PROVIDERS: ProviderInfo[] = [
   DEFAULT_PROVIDER,
   {
-    name: "glm-cn",
-    label: "Zhipu GLM Coding Plan (China)",
     apiKeyEnv: "ZHIPU_API_KEY",
-    defaultModel: "glm-5.1",
     baseURL: "https://open.bigmodel.cn/api/coding/paas/v4",
-    keyUrl: "https://open.bigmodel.cn/usercenter/apikeys",
+    defaultModel: "glm-5.1",
     keyHint: "Zhipu BigModel → API keys (GLM Coding Plan).",
-    metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
+    keyUrl: "https://open.bigmodel.cn/usercenter/apikeys",
+    label: "Zhipu GLM Coding Plan (China)",
+    metadata: { contextWindow: 204_800, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, maxOutputTokens: 8192, supportsReasoning: true },
+    name: "glm-cn",
   },
   {
-    name: "qwen",
-    label: "Alibaba Qwen",
     apiKeyEnv: "DASHSCOPE_API_KEY",
-    defaultModel: "qwen3.7-max",
     baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-    keyUrl: "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
+    defaultModel: "qwen3.7-max",
     keyHint: "Alibaba Cloud Model Studio → API keys.",
-    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 1.6, costPerMTokOutput: 6.4, supportsReasoning: false },
+    keyUrl: "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
+    label: "Alibaba Qwen",
+    metadata: { contextWindow: 262_144, costPerMTokInput: 1.6, costPerMTokOutput: 6.4, maxOutputTokens: 8192, supportsReasoning: false },
+    name: "qwen",
   },
   {
-    name: "kimi",
-    label: "Moonshot Kimi",
     apiKeyEnv: "MOONSHOT_API_KEY",
-    defaultModel: "kimi-k2.6",
     baseURL: "https://api.moonshot.ai/v1",
-    keyUrl: "https://platform.moonshot.ai/console/api-keys",
+    defaultModel: "kimi-k2.6",
     keyHint: "Moonshot / Kimi platform → API keys.",
-    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.5, supportsReasoning: false },
+    keyUrl: "https://platform.moonshot.ai/console/api-keys",
+    label: "Moonshot Kimi",
+    metadata: { contextWindow: 262_144, costPerMTokInput: 0.6, costPerMTokOutput: 2.5, maxOutputTokens: 8192, supportsReasoning: false },
+    name: "kimi",
   },
   {
-    name: "mimo",
-    label: "Xiaomi MiMo",
     apiKeyEnv: "MIMO_API_KEY",
-    defaultModel: "mimo-v2.5-pro",
     baseURL: "https://api.xiaomimimo.com/v1",
-    keyUrl: "https://platform.xiaomimimo.com",
+    defaultModel: "mimo-v2.5-pro",
     keyHint: "Xiaomi MiMo platform → API keys.",
-    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, supportsReasoning: false },
+    keyUrl: "https://platform.xiaomimimo.com",
+    label: "Xiaomi MiMo",
+    metadata: { contextWindow: 131_072, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, maxOutputTokens: 8192, supportsReasoning: false },
+    name: "mimo",
   },
   {
-    name: "deepseek",
-    label: "DeepSeek",
     apiKeyEnv: "DEEPSEEK_API_KEY",
-    defaultModel: "deepseek-v4-pro",
     baseURL: "https://api.deepseek.com/v1",
-    keyUrl: "https://platform.deepseek.com/api_keys",
+    defaultModel: "deepseek-v4-pro",
     keyHint: "DeepSeek platform → API keys.",
-    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 0.5, costPerMTokOutput: 1.5, supportsReasoning: true },
+    keyUrl: "https://platform.deepseek.com/api_keys",
+    label: "DeepSeek",
+    metadata: { contextWindow: 131_072, costPerMTokInput: 0.5, costPerMTokOutput: 1.5, maxOutputTokens: 8192, supportsReasoning: true },
+    name: "deepseek",
   },
   {
-    name: "gemini",
-    label: "Google Gemini",
     apiKeyEnv: "GEMINI_API_KEY",
-    defaultModel: "gemini-3.5-flash",
     baseURL: "https://generativelanguage.googleapis.com/v1beta/openai",
-    keyUrl: "https://aistudio.google.com/apikey",
+    defaultModel: "gemini-3.5-flash",
     keyHint: "Google AI Studio → API keys.",
-    metadata: { contextWindow: 1048576, maxOutputTokens: 65536, costPerMTokInput: 0.3, costPerMTokOutput: 2.5, supportsReasoning: true },
+    keyUrl: "https://aistudio.google.com/apikey",
+    label: "Google Gemini",
+    metadata: { contextWindow: 1_048_576, costPerMTokInput: 0.3, costPerMTokOutput: 2.5, maxOutputTokens: 65_536, supportsReasoning: true },
+    name: "gemini",
   },
   {
-    name: "minimax",
-    label: "MiniMax",
     apiKeyEnv: "MINIMAX_API_KEY",
-    defaultModel: "minimax-m2.7",
     baseURL: "https://api.minimax.io/v1",
-    keyUrl: "https://www.minimax.io/platform/user-center/basic-information/interface-key",
+    defaultModel: "minimax-m2.7",
     keyHint: "MiniMax platform → API keys.",
-    metadata: { contextWindow: 245760, maxOutputTokens: 8192, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, supportsReasoning: true },
+    keyUrl: "https://www.minimax.io/platform/user-center/basic-information/interface-key",
+    label: "MiniMax",
+    metadata: { contextWindow: 245_760, costPerMTokInput: 0.3, costPerMTokOutput: 1.2, maxOutputTokens: 8192, supportsReasoning: true },
+    name: "minimax",
   },
   {
-    name: "mistral",
-    label: "Mistral AI",
     apiKeyEnv: "MISTRAL_API_KEY",
-    defaultModel: "mistral-large-3",
     baseURL: "https://api.mistral.ai/v1",
-    keyUrl: "https://console.mistral.ai/api-keys",
+    defaultModel: "mistral-large-3",
     keyHint: "Mistral console → API keys.",
-    metadata: { contextWindow: 131072, maxOutputTokens: 8192, costPerMTokInput: 2.0, costPerMTokOutput: 6.0, supportsReasoning: false },
+    keyUrl: "https://console.mistral.ai/api-keys",
+    label: "Mistral AI",
+    metadata: { contextWindow: 131_072, costPerMTokInput: 2, costPerMTokOutput: 6, maxOutputTokens: 8192, supportsReasoning: false },
+    name: "mistral",
   },
 ];
 
-export function findProvider(name: string): ProviderInfo | undefined {
-  return PROVIDERS.find((provider) => provider.name === name);
-}
+export const findProvider = (name: string) => PROVIDERS.find((provider) => provider.name === name);

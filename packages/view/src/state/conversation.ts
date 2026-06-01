@@ -1,9 +1,10 @@
-import { atom } from "jotai";
 import type { Role } from "@totvibe/protocol";
 
-export type { Role };
+import { atom } from "jotai";
 
-export interface DisplayMessage {
+
+
+export type DisplayMessage = {
   id: string;
   role: Role;
   text: string;
@@ -21,3 +22,5 @@ export const appendMessageAtom = atom(
     set(messagesAtom, [...get(messagesAtom), { id: `m${String(id)}`, ...message }]);
   },
 );
+
+export {type Role} from "@totvibe/protocol";

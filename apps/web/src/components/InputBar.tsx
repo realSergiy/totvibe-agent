@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { useAtomValue } from "jotai";
 import { isStreamingAtom, useController } from "@totvibe/view";
+import { useAtomValue } from "jotai";
+import { useState } from "react";
 
-export function InputBar() {
+export const InputBar = () => {
   const isStreaming = useAtomValue(isStreamingAtom);
   const controller = useController();
   const [value, setValue] = useState("");
@@ -21,13 +21,13 @@ export function InputBar() {
     >
       <input
         autoFocus
-        value={value}
         disabled={isStreaming}
-        placeholder={isStreaming ? "working… (Esc cancels)" : "Ask totvibe to do something…"}
         onChange={(event) => {
           setValue(event.target.value);
         }}
+        placeholder={isStreaming ? "working… (Esc cancels)" : "Ask totvibe to do something…"}
+        value={value}
       />
     </form>
   );
-}
+};

@@ -1,8 +1,8 @@
-import { useEffect } from "react";
-import { useAtomValue } from "jotai";
 import { formatToolInput, pendingApprovalAtom, theme, useController } from "@totvibe/view";
+import { useAtomValue } from "jotai";
+import { useEffect } from "react";
 
-export function ApprovalPrompt() {
+export const ApprovalPrompt = () => {
   const pendingApproval = useAtomValue(pendingApprovalAtom);
   const controller = useController();
 
@@ -12,9 +12,9 @@ export function ApprovalPrompt() {
       if (event.key === "y") controller.resolveApproval(true);
       else if (event.key === "n" || event.key === "Escape") controller.resolveApproval(false);
     };
-    window.addEventListener("keydown", onKeydown);
+    globalThis.addEventListener("keydown", onKeydown);
     return () => {
-      window.removeEventListener("keydown", onKeydown);
+      globalThis.removeEventListener("keydown", onKeydown);
     };
   }, [pendingApproval, controller]);
 
@@ -29,22 +29,22 @@ export function ApprovalPrompt() {
       </div>
       <div className="field">
         <button
-          type="button"
           onClick={() => {
             controller.resolveApproval(true);
           }}
+          type="button"
         >
           Run (y)
         </button>
         <button
-          type="button"
           onClick={() => {
             controller.resolveApproval(false);
           }}
+          type="button"
         >
           Skip (n)
         </button>
       </div>
     </div>
   );
-}
+};

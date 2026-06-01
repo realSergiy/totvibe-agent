@@ -1,7 +1,10 @@
-import { act } from "react";
-import { expect } from "bun:test";
 import { testRender } from "@opentui/react/test-utils";
 import { Root } from "@totvibe/tui/root";
+import { expect } from "bun:test";
+import { act } from "react";
+
+import type { Scene } from "../sharedStories/harness";
+
 import {
   buildConfig,
   CONNECTED_PROVIDER_KEYS,
@@ -9,32 +12,31 @@ import {
   stubFetchOk,
 } from "../fixtures/config";
 import { resetModelReply, setModelReply } from "../fixtures/model-mock";
-import type { Scene } from "../sharedStories/harness";
 
-type RenderSetup = Awaited<ReturnType<typeof testRender>>;
-
-interface RenderOptions {
-  connectedProviderKeys?: Record<string, string>;
-}
-
-export interface TuiScene extends Scene {
+export type TuiScene = Scene & {
   pressArrowDown(): Promise<void>;
 }
 
-async function renderScene(options: RenderOptions): Promise<TuiScene> {
+type RenderOptions = {
+  connectedProviderKeys?: Record<string, string>;
+}
+
+type RenderSetup = Awaited<ReturnType<typeof testRender>>;
+
+const renderScene = async (options: RenderOptions) => {
   const restoreEnv = isolateProviderEnv(options.connectedProviderKeys ?? {});
   const restoreFetch = stubFetchOk();
   let setup!: RenderSetup;
   await act(async () => {
     setup = await testRender(<Root config={buildConfig()} />, {
-      width: 120,
-      height: 40,
       exitOnCtrlC: false,
+      height: 40,
+      width: 120,
     });
     await setup.waitForVisualIdle();
   });
 
-  const settle = async (interact: () => void | Promise<void>) => {
+  const settle = async (interact: () => Promise<void> | void) => {
     await act(async () => {
       await interact();
     });
@@ -55,11 +57,7 @@ async function renderScene(options: RenderOptions): Promise<TuiScene> {
         }),
     },
     assert: {
-      shows: frameShows,
-      hides(text) {
-        expect(setup.captureCharFrame()).not.toContain(text);
-      },
-      async eventuallyShows(text) {
+      eventuallyShows: async (text) => {
         await act(async () => {
           for (let pass = 0; pass < 50; pass += 1) {
             await setup.flush();
@@ -69,12 +67,12 @@ async function renderScene(options: RenderOptions): Promise<TuiScene> {
         });
         frameShows(text);
       },
+      hides: (text) => {
+        expect(setup.captureCharFrame()).not.toContain(text);
+      },
+      shows: frameShows,
     },
-    pressArrowDown: () =>
-      settle(() => {
-        setup.mockInput.pressArrow("down");
-      }),
-    async dispose() {
+    dispose: async () => {
       await act(async () => {
         await setup.flush();
         setup.renderer.destroy();
@@ -82,20 +80,24 @@ async function renderScene(options: RenderOptions): Promise<TuiScene> {
       restoreFetch();
       restoreEnv();
     },
+    pressArrowDown: () =>
+      settle(() => {
+        setup.mockInput.pressArrow("down");
+      }),
   };
-}
+};
 
 export const tuiHarness = {
-  unconnected(): Promise<TuiScene> {
-    resetModelReply();
-    return renderScene({});
-  },
-  connected(): Promise<TuiScene> {
+  connected: () => {
     resetModelReply();
     return renderScene({ connectedProviderKeys: CONNECTED_PROVIDER_KEYS });
   },
-  connectedWithReply(reply: string): Promise<TuiScene> {
+  connectedWithReply: (reply: string) => {
     setModelReply(reply);
     return renderScene({ connectedProviderKeys: CONNECTED_PROVIDER_KEYS });
+  },
+  unconnected: () => {
+    resetModelReply();
+    return renderScene({});
   },
 };

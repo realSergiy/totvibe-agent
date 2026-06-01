@@ -1,15 +1,17 @@
-import { useEffect, useState } from "react";
-import { createStore, Provider } from "jotai";
-import { ControllerContext } from "@totvibe/view";
 import type { InitialConfig } from "@totvibe/runtime";
+
+import { ControllerContext } from "@totvibe/view";
+import { createStore, Provider } from "jotai";
+import { useEffect, useState } from "react";
+
 import { createLocalController } from "./agent/createLocalController";
 import { App } from "./App";
 
-export function Root({ config }: { config: InitialConfig }) {
-  const [{ store, controller, start }] = useState(() => {
+export const Root = ({ config }: { config: InitialConfig }) => {
+  const [{ controller, start, store }] = useState(() => {
     const store = createStore();
     const { controller, start } = createLocalController(config, store);
-    return { store, controller, start };
+    return { controller, start, store };
   });
 
   useEffect(() => {
@@ -23,4 +25,4 @@ export function Root({ config }: { config: InitialConfig }) {
       </ControllerContext>
     </Provider>
   );
-}
+};

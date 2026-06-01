@@ -1,8 +1,6 @@
-import { useRef, useState } from "react";
-import { useKeyboard, usePaste } from "@opentui/react";
 import { decodePasteBytes, type InputRenderable } from "@opentui/core";
-import { useAtomValue, useSetAtom } from "jotai";
-import { DEFAULT_PROVIDER, PROVIDERS, type ProviderInfo } from "@totvibe/protocol";
+import { useKeyboard, usePaste } from "@opentui/react";
+import { DEFAULT_PROVIDER, type ProviderInfo, PROVIDERS } from "@totvibe/protocol";
 import {
   connectedProvidersAtom,
   connectionStatusAtom,
@@ -13,10 +11,12 @@ import {
   theme,
   useController,
 } from "@totvibe/view";
+import { useAtomValue, useSetAtom } from "jotai";
+import { useRef, useState } from "react";
 
-type DialogMode = "select" | "key" | "model";
+type DialogMode = "key" | "model" | "select";
 
-export function ProviderDialog() {
+export const ProviderDialog = () => {
   const controller = useController();
   const activeProviderName = useAtomValue(providerNameAtom);
   const activeModelId = useAtomValue(modelIdAtom);
@@ -58,7 +58,7 @@ export function ProviderDialog() {
 
   usePaste((event) => {
     if (mode === "model") return;
-    const pasted = decodePasteBytes(event.bytes).replace(/[\r\n]/g, "").trim();
+    const pasted = decodePasteBytes(event.bytes).replaceAll(/[\r\n]/g, "").trim();
     if (!pasted) return;
     event.preventDefault();
     const keyInput = keyInputRef.current;
@@ -72,31 +72,39 @@ export function ProviderDialog() {
       return;
     }
     switch (key.name) {
-      case "up":
-        setHighlightedIndex((current) => (current === 0 ? PROVIDERS.length - 1 : current - 1));
-        break;
-      case "down":
+      case "down": {
         setHighlightedIndex((current) => (current === PROVIDERS.length - 1 ? 0 : current + 1));
         break;
-      case "k":
+      }
+      case "escape": {
+        if (canClose) setProviderDialogOpen(false);
+        break;
+      }
+      case "k": {
         setMode("key");
         break;
-      case "m":
+      }
+      case "m": {
         setMode("model");
         break;
-      case "t":
-        controller.testConnection(highlightedProvider.name);
-        break;
-      case "o":
+      }
+      case "o": {
         controller.openKeyPage(highlightedProvider.keyUrl);
         setNotice(`Opening ${highlightedProvider.keyUrl}`);
         break;
-      case "return":
+      }
+      case "return": {
         activateProvider(highlightedProvider, resolveModelId(highlightedProvider));
         break;
-      case "escape":
-        if (canClose) setProviderDialogOpen(false);
+      }
+      case "t": {
+        controller.testConnection(highlightedProvider.name);
         break;
+      }
+      case "up": {
+        setHighlightedIndex((current) => (current === 0 ? PROVIDERS.length - 1 : current - 1));
+        break;
+      }
     }
   });
 
@@ -104,12 +112,12 @@ export function ProviderDialog() {
     <box
       style={{
         border: true,
-        borderStyle: "rounded",
         borderColor: theme.brand,
-        padding: 1,
+        borderStyle: "rounded",
         flexDirection: "column",
         flexShrink: 0,
         gap: 1,
+        padding: 1,
       }}
     >
       <text fg={theme.brand}>Connect a provider · switch model</text>
@@ -117,9 +125,9 @@ export function ProviderDialog() {
       <box style={{ flexDirection: "column", flexShrink: 0 }}>
         {PROVIDERS.map((provider, providerIndex) => (
           <text
+            fg={providerIndex === highlightedIndex ? theme.text : theme.muted}
             key={provider.name}
             style={{ flexShrink: 0 }}
-            fg={providerIndex === highlightedIndex ? theme.text : theme.muted}
           >
             {providerIndex === highlightedIndex ? "▶ " : "  "}
             {isConnected(provider) ? "●" : "○"} {provider.label} · {resolveModelId(provider)}
@@ -140,28 +148,28 @@ export function ProviderDialog() {
         <box style={{ flexDirection: "row", gap: 1 }}>
           <text fg={theme.muted}>API key</text>
           <input
-            ref={keyInputRef}
-            key={`key-${highlightedProvider.name}`}
             focused={mode === "key"}
-            placeholder={`paste ${highlightedProvider.apiKeyEnv}, Enter to save`}
+            key={`key-${highlightedProvider.name}`}
             onSubmit={submitApiKey}
+            placeholder={`paste ${highlightedProvider.apiKeyEnv}, Enter to save`}
+            ref={keyInputRef}
           />
         </box>
 
         <box style={{ flexDirection: "row", gap: 1 }}>
           <text fg={theme.muted}>Model </text>
           <input
-            ref={modelInputRef}
-            key={`model-${highlightedProvider.name}`}
-            value={resolveModelId(highlightedProvider)}
             focused={mode === "model"}
-            placeholder="model id, Enter to use"
+            key={`model-${highlightedProvider.name}`}
             onSubmit={() => {
               activateProvider(
                 highlightedProvider,
                 modelInputRef.current?.value ?? highlightedProvider.defaultModel,
               );
             }}
+            placeholder="model id, Enter to use"
+            ref={modelInputRef}
+            value={resolveModelId(highlightedProvider)}
           />
         </box>
       </box>
@@ -174,4 +182,4 @@ export function ProviderDialog() {
       </text>
     </box>
   );
-}
+};

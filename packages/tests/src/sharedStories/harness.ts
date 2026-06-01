@@ -1,22 +1,22 @@
-interface Assert {
-  shows(text: string): void;
-  hides(text: string): void;
-  eventuallyShows(text: string): Promise<void>;
+export type Harness = {
+  connected(): Promise<Scene>;
+  connectedWithReply(reply: string): Promise<Scene>;
+  unconnected(): Promise<Scene>;
 }
 
-interface Act {
-  type(text: string): Promise<void>;
-  typeAndSubmit(text: string): Promise<void>;
-}
-
-export interface Scene {
+export type Scene = {
   act: Act;
   assert: Assert;
   dispose(): Promise<void>;
 }
 
-export interface Harness {
-  unconnected(): Promise<Scene>;
-  connected(): Promise<Scene>;
-  connectedWithReply(reply: string): Promise<Scene>;
+type Act = {
+  type(text: string): Promise<void>;
+  typeAndSubmit(text: string): Promise<void>;
+}
+
+type Assert = {
+  eventuallyShows(text: string): Promise<void>;
+  hides(text: string): void;
+  shows(text: string): void;
 }

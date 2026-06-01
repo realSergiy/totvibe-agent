@@ -1,18 +1,19 @@
-import { useEffect, useState } from "react";
+import { type AgentController, ControllerContext, type Store } from "@totvibe/view";
 import { createStore, Provider } from "jotai";
-import { ControllerContext, type AgentController, type Store } from "@totvibe/view";
-import { createSocketController } from "./createSocketController";
-import { App } from "./App";
+import { useEffect, useState } from "react";
 
-export interface RootProps {
+import { App } from "./App";
+import { createSocketController } from "./createSocketController";
+
+export type RootProps = {
   create?: (store: Store) => { controller: AgentController; start: () => void };
 }
 
-export function Root({ create = createSocketController }: RootProps) {
-  const [{ store, controller, start }] = useState(() => {
+export const Root = ({ create = createSocketController }: RootProps) => {
+  const [{ controller, start, store }] = useState(() => {
     const store = createStore();
     const built = create(store);
-    return { store, controller: built.controller, start: built.start };
+    return { controller: built.controller, start: built.start, store };
   });
 
   useEffect(() => {
@@ -26,4 +27,4 @@ export function Root({ create = createSocketController }: RootProps) {
       </ControllerContext>
     </Provider>
   );
-}
+};

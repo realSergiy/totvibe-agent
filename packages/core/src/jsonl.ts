@@ -2,12 +2,12 @@ import { appendFile, mkdir, readFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 export class JsonlLog {
-  private writes: Promise<void> = Promise.resolve();
   private isDirReady = false;
+  private writes: Promise<void> = Promise.resolve();
 
   constructor(private readonly path: string) {}
 
-  append(record: unknown): void {
+  append(record: unknown) {
     const line = `${JSON.stringify(record)}\n`;
     this.writes = this.writes.then(async () => {
       if (!this.isDirReady) {
@@ -18,11 +18,11 @@ export class JsonlLog {
     });
   }
 
-  flushed(): Promise<void> {
+  flushed() {
     return this.writes;
   }
 
-  async readAll(): Promise<unknown[]> {
+  async readAll() {
     let text: string;
     try {
       text = await readFile(this.path, "utf8");

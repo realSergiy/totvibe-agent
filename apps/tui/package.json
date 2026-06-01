@@ -11,14 +11,14 @@
     "./root": "./src/Root.tsx"
   },
   "dependencies": {
-    "@opentui/core": "latest",
-    "@opentui/react": "latest",
+    "@opentui/core": "catalog:",
+    "@opentui/react": "catalog:",
     "@totvibe/protocol": "workspace:*",
     "@totvibe/runtime": "workspace:*",
     "@totvibe/view": "workspace:*",
     "@totvibe/web": "workspace:*",
-    "citty": "^0.2.2",
-    "jotai": "^2",
-    "react": "^19"
+    "citty": "catalog:",
+    "jotai": "catalog:",
+    "react": "catalog:"
   }
 }

@@ -1,8 +1,8 @@
 import { useKeyboard } from "@opentui/react";
-import { useAtomValue } from "jotai";
 import { formatToolInput, pendingApprovalAtom, theme, useController } from "@totvibe/view";
+import { useAtomValue } from "jotai";
 
-export function ApprovalPrompt() {
+export const ApprovalPrompt = () => {
   const pendingApproval = useAtomValue(pendingApprovalAtom);
   const controller = useController();
 
@@ -18,10 +18,10 @@ export function ApprovalPrompt() {
     <box
       style={{
         border: true,
-        borderStyle: "rounded",
         borderColor: theme.warn,
-        padding: 1,
+        borderStyle: "rounded",
         flexDirection: "column",
+        padding: 1,
       }}
     >
       <text fg={theme.warn}>Approve {pendingApproval.name}?  [y] run   [n] skip</text>
@@ -29,4 +29,4 @@ export function ApprovalPrompt() {
       <text fg={theme.muted}>{pendingApproval.command ?? formatToolInput(pendingApproval.input)}</text>
     </box>
   );
-}
+};

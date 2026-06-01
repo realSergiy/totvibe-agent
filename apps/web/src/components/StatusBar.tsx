@@ -1,4 +1,3 @@
-import { useAtomValue } from "jotai";
 import {
   agentStatusAtom,
   connectionStatusAtom,
@@ -13,8 +12,9 @@ import {
   sandboxStatusAtom,
   theme,
 } from "@totvibe/view";
+import { useAtomValue } from "jotai";
 
-export function StatusBar() {
+export const StatusBar = () => {
   const provider = useAtomValue(providerAtom);
   const modelId = useAtomValue(modelIdAtom);
   const connectionStatus = useAtomValue(connectionStatusAtom);
@@ -37,4 +37,4 @@ export function StatusBar() {
       <span style={{ color: theme.muted }}>/provider to connect</span>
     </div>
   );
-}
+};

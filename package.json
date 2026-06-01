@@ -13,17 +13,27 @@
       "packages/*"
     ],
     "catalog": {
+      "@ai-sdk/openai-compatible": "^2",
+      "@happy-dom/global-registrator": "^20",
+      "@opentui/core": "latest",
+      "@opentui/react": "latest",
+      "@testing-library/react": "^16",
+      "@totvibe/eslint-config": "^0.1.0",
+      "@types/bun": "latest",
+      "@types/react": "^19",
+      "@types/react-dom": "^19",
+      "ai": "^6",
+      "citty": "^0.2.2",
+      "eslint": "^10.4.1",
+      "jiti": "^2.7.0",
+      "jotai": "^2",
       "knip": "^6.15.0",
       "npm-check-updates": "^22.2.1",
       "prettier": "^3.8.3",
+      "react": "^19",
+      "react-dom": "^19",
       "typescript": "^6.0.3",
-      "typescript-eslint": "^8.60.0",
-      "@eslint/js": "^10.0.1",
-      "@types/bun": "latest",
-      "@types/react": "^19",
-      "eslint": "^10.4.1",
-      "jiti": "^2.7.0",
-      "react": "^19"
+      "zod": "^4"
     }
   },
   "scripts": {
@@ -44,14 +54,13 @@
     "npm-check-updates": "catalog:",
     "prettier": "catalog:",
     "typescript": "catalog:",
-    "@eslint/js": "catalog:",
+    "@totvibe/eslint-config": "catalog:",
     "@totvibe/tsconfig": "workspace:*",
     "@types/bun": "catalog:",
     "@types/react": "catalog:",
     "eslint": "catalog:",
     "jiti": "catalog:",
     "knip": "catalog:",
-    "react": "catalog:",
-    "typescript-eslint": "catalog:"
+    "react": "catalog:"
   }
 }

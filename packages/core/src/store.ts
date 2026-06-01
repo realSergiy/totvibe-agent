@@ -1,10 +1,12 @@
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
+
 import type { ModelMessage } from "./ai-core";
 import type { AgentEvent } from "./events";
+
 import { JsonlLog } from "./jsonl";
 
-interface MessageRecord {
+type MessageRecord = {
   message: ModelMessage;
 }
 
@@ -18,28 +20,26 @@ export class SessionStore {
     this.log = new JsonlLog(sessionFilePath(dir, sessionId));
   }
 
-  readonly persist = (event: AgentEvent): void => {
+  flushed() {
+    return this.log.flushed();
+  }
+
+  readonly persist = (event: AgentEvent) => {
     if (event.type !== "message") return;
     this.log.append({ message: event.message } satisfies MessageRecord);
   };
-
-  flushed(): Promise<void> {
-    return this.log.flushed();
-  }
 }
 
-function sessionFilePath(dir: string, sessionId: string): string {
-  return join(dir, `${sessionId}.jsonl`);
-}
+const sessionFilePath = (dir: string, sessionId: string) => join(dir, `${sessionId}.jsonl`);
 
-export async function loadSessionMessages(dir: string, sessionId: string): Promise<ModelMessage[]> {
+export const loadSessionMessages = async (dir: string, sessionId: string) => {
   const log = new JsonlLog(sessionFilePath(dir, sessionId));
   const records = (await log.readAll()) as MessageRecord[];
   return records.map((record) => record.message);
-}
+};
 
-export async function findLatestSessionId(dir: string): Promise<string | undefined> {
-  let entries: Array<{ name: string; fileModTime: number }>;
+export const findLatestSessionId = async (dir: string) => {
+  let entries: { fileModTime: number; name: string; }[];
   try {
     const names = await readdir(dir);
     entries = await Promise.all(
@@ -47,12 +47,12 @@ export async function findLatestSessionId(dir: string): Promise<string | undefin
         .filter((name) => name.endsWith(".jsonl"))
         .map(async (name) => {
           const stat = await Bun.file(join(dir, name)).stat();
-          return { name: name.slice(0, -".jsonl".length), fileModTime: stat.mtimeMs };
+          return { fileModTime: stat.mtimeMs, name: name.slice(0, -".jsonl".length) };
         }),
     );
   } catch {
-    return undefined;
+    return;
   }
   const [latest] = entries.sort((a, b) => b.fileModTime - a.fileModTime);
   return latest?.name;
-}
+};

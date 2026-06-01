@@ -1,24 +1,23 @@
-import { resolve } from "node:path";
 import type { ProviderInfo } from "@totvibe/protocol";
 
-export interface RuntimeHost {
+import { resolve } from "node:path";
+
+export type RuntimeHost = {
   saveEnvVars(updates: Record<string, string>): Promise<void>;
 }
 
-export function isConnected(provider: ProviderInfo): boolean {
-  return Boolean(process.env[provider.apiKeyEnv]?.trim());
-}
+export const isConnected = (provider: ProviderInfo) => Boolean(process.env[provider.apiKeyEnv]?.trim());
 
 export const bunHost: RuntimeHost = {
-  async saveEnvVars(updates: Record<string, string>): Promise<void> {
+  saveEnvVars: async (updates: Record<string, string>) => {
     const path = resolve(process.cwd(), ".env");
     const file = Bun.file(path);
     const existing = (await file.exists()) ? await file.text() : "";
-    const lines = existing.length ? existing.split("\n") : [];
+    const lines = existing.length > 0 ? existing.split("\n") : [];
 
     const written = new Set<string>();
     const rewritten = lines.map((line) => {
-      const match = line.match(/^\s*([A-Za-z0-9_]+)\s*=/);
+      const match = /^\s*([A-Za-z0-9_]+)\s*=/.exec(line);
       const name = match?.[1];
       if (name && updates[name] !== undefined) {
         written.add(name);

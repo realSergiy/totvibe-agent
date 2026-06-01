@@ -4,6 +4,6 @@
   "private": true,
   "files": ["base.json", "bun.json", "iso.json", "web.json", "tui.json"],
   "dependencies": {
-    "@opentui/react": "latest"
+    "@opentui/react": "catalog:"
   }
 }

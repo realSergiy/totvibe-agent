@@ -1,4 +1,5 @@
 import { JsonlLog } from "@totvibe/core";
+
 import type { PolicyDecisionRecord } from "./index";
 
 export class AuditLedger {
@@ -8,11 +9,11 @@ export class AuditLedger {
     this.log = new JsonlLog(path);
   }
 
-  readonly record = (entry: PolicyDecisionRecord): void => {
-    this.log.append(entry);
-  };
-
-  flushed(): Promise<void> {
+  flushed() {
     return this.log.flushed();
   }
+
+  readonly record = (entry: PolicyDecisionRecord) => {
+    this.log.append(entry);
+  };
 }

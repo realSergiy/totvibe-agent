@@ -1,7 +1,8 @@
 import { test } from "bun:test";
+
 import type { Harness } from "./harness";
 
-export default function registerInputCommandScenarios(harness: Harness): void {
+export default function registerInputCommandScenarios(harness: Harness) {
   test("shows the input prompt when a provider is connected", async () => {
     const scene = await harness.connected();
     scene.assert.shows("Ask totvibe to do something");

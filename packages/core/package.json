@@ -9,7 +9,7 @@
     "./ai-core": "./src/ai-core.ts"
   },
   "dependencies": {
-    "ai": "^6",
-    "zod": "^4"
+    "ai": "catalog:",
+    "zod": "catalog:"
   }
 }

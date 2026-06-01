@@ -1,18 +1,17 @@
-import { expect, test } from "bun:test";
 import type { ClientCommand, ServerEvent } from "@totvibe/protocol";
 
-function roundTrip<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
-}
+import { expect, test } from "bun:test";
+
+const roundTrip = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 test("client commands survive a JSON wire round-trip", () => {
   const commands: ClientCommand[] = [
-    { type: "submit", text: "ping" },
+    { text: "ping", type: "submit" },
     { type: "cancel" },
-    { type: "approve", granted: true },
-    { type: "select-provider", providerName: "qwen", modelId: "qwen3.7-max" },
-    { type: "save-api-key", providerName: "qwen", apiKey: "secret" },
-    { type: "test-connection", providerName: "qwen" },
+    { granted: true, type: "approve" },
+    { modelId: "qwen3.7-max", providerName: "qwen", type: "select-provider" },
+    { apiKey: "secret", providerName: "qwen", type: "save-api-key" },
+    { providerName: "qwen", type: "test-connection" },
   ];
   for (const command of commands) {
     expect(roundTrip(command)).toEqual(command);
@@ -22,19 +21,19 @@ test("client commands survive a JSON wire round-trip", () => {
 test("server events survive a JSON wire round-trip", () => {
   const events: ServerEvent[] = [
     {
+      session: { cwd: "~/project", isProviderDialogOpen: false, modelId: "qwen3.7-max", providerName: "qwen" },
       type: "init",
-      session: { cwd: "~/project", providerName: "qwen", modelId: "qwen3.7-max", isProviderDialogOpen: false },
     },
-    { type: "connected-providers", names: ["qwen", "deepseek"] },
-    { type: "agent", event: { type: "text", text: "hello" } },
-    { type: "approval-request", request: null },
-    { type: "agent-status", status: "thinking…" },
-    { type: "streaming", streaming: true },
-    { type: "connection-status", status: "ok" },
-    { type: "provider-changed", providerName: "qwen", modelId: "qwen3.7-max" },
-    { type: "provider-dialog", open: true },
-    { type: "notice", text: "Saved DASHSCOPE_API_KEY to .env" },
-    { type: "message", role: "tool", text: "granted read/write: /tmp/demo" },
+    { names: ["qwen", "deepseek"], type: "connected-providers" },
+    { event: { text: "hello", type: "text" }, type: "agent" },
+    { request: null, type: "approval-request" },
+    { status: "thinking…", type: "agent-status" },
+    { streaming: true, type: "streaming" },
+    { status: "ok", type: "connection-status" },
+    { modelId: "qwen3.7-max", providerName: "qwen", type: "provider-changed" },
+    { open: true, type: "provider-dialog" },
+    { text: "Saved DASHSCOPE_API_KEY to .env", type: "notice" },
+    { role: "tool", text: "granted read/write: /tmp/demo", type: "message" },
   ];
   for (const event of events) {
     expect(roundTrip(event)).toEqual(event);
