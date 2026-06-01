@@ -1,107 +1,11 @@
-# Bun Conventions
+# Invariants
 
-Default to using Bun instead of Node.js.
-
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Use `bunx <package> <command>` instead of `npx <package> <command>`
-- Bun automatically loads .env, so don't use dotenv.
-
-## APIs
-
-- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
-- `bun:sqlite` for SQLite. Don't use `better-sqlite3`.
-- `Bun.redis` for Redis. Don't use `ioredis`.
-- `Bun.sql` for Postgres. Don't use `pg` or `postgres.js`.
-- `WebSocket` is built-in. Don't use `ws`.
-- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
-- Bun.$`ls` instead of execa.
-
-## Testing
-
-Use `bun test` to run tests.
-
-```ts#index.test.ts
-import { test, expect } from "bun:test";
-
-test("hello world", () => {
-  expect(1).toBe(1);
-});
-```
-
-## Frontend
-
-Use HTML imports with `Bun.serve()`. Don't use `vite`. HTML imports fully support React, CSS, Tailwind.
-
-Server:
-
-```ts#index.ts
-import index from "./index.html"
-
-Bun.serve({
-  routes: {
-    "/": index,
-    "/api/users/:id": {
-      GET: (req) => {
-        return new Response(JSON.stringify({ id: req.params.id }));
-      },
-    },
-  },
-  // optional websocket support
-  websocket: {
-    open: (ws) => {
-      ws.send("Hello, world!");
-    },
-    message: (ws, message) => {
-      ws.send(message);
-    },
-    close: (ws) => {
-      // handle close
-    }
-  },
-  development: {
-    hmr: true,
-    console: true,
-  }
-})
-```
-
-HTML files can import .tsx, .jsx or .js files directly and Bun's bundler will transpile & bundle automatically. `<link>` tags can point to stylesheets and Bun's CSS bundler will bundle.
-
-```html#index.html
-<html>
-  <body>
-    <h1>Hello, world!</h1>
-    <script type="module" src="./frontend.tsx"></script>
-  </body>
-</html>
-```
-
-With the following `frontend.tsx`:
-
-```tsx#frontend.tsx
-import React from "react";
-import { createRoot } from "react-dom/client";
-
-// import .css files directly and it works
-import './index.css';
-
-const root = createRoot(document.body);
-
-export default function Frontend() {
-  return <h1>Hello, world!</h1>;
-}
-
-root.render(<Frontend />);
-```
-
-Then, run index.ts
-
-```sh
-bun --hot ./index.ts
-```
-
-For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+- **Layering is acyclic:** `core ← protocol ← {view, runtime} ← apps/*`; `view` and `runtime` never import each other.
+- **One cross-frontend seam:** TUI and web share state only via `protocol` wire types (`ClientCommand`/`ServerEvent`) through `view`'s `applyServerEvent` — never reach across frontends directly.
+- **Agent runs server-side only:** `view` and the browser never read `process.env`, hold provider keys, or call models — connection state arrives as a `connected-providers` event.
+- **`protocol` and `view` stay browser-safe:** no Node/Bun APIs, no OpenTUI, no react-dom imports.
+- **JSX is per-app:** terminal code uses `jsxImportSource: @opentui/react` (its own tsconfig); everything else uses `react` — never pull OpenTUI components into the React program.
+- **Test suites are isolated processes:** `test:tui` never preloads happy-dom, `test:web` always does; shared behavior lives in `sharedStories/` over the `Harness` interface and asserts on content, not terminal glyphs.
+- **Bun-native only:** `Bun.serve` (never Vite/express), `bun test`, `Bun.file`, `bun:sqlite`, `Bun.sql`, `Bun.redis` — no Node-library equivalents.
+- **One agent runtime per web connection:** created on WebSocket open, torn down on close.
+- **`just check` is the gate:** knip → typecheck → lint → test must pass before done; never silence a quality tool to get there.

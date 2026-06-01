@@ -1,22 +1,20 @@
 {
-  "name": "@totvibe/tests",
+  "name": "@totvibe/web",
   "version": "0.1.0",
   "type": "module",
-  "private": true,
+  "exports": {
+    ".": "./src/Root.tsx",
+    "./server": "./src/server.ts"
+  },
   "dependencies": {
-    "@opentui/react": "latest",
-    "@totvibe/core": "workspace:*",
     "@totvibe/protocol": "workspace:*",
     "@totvibe/runtime": "workspace:*",
-    "@totvibe/tui": "workspace:*",
     "@totvibe/view": "workspace:*",
-    "@totvibe/web": "workspace:*",
+    "jotai": "^2",
     "react": "^19",
     "react-dom": "^19"
   },
   "devDependencies": {
-    "@happy-dom/global-registrator": "^20",
-    "@testing-library/react": "^16",
     "@types/react-dom": "^19"
   }
 }

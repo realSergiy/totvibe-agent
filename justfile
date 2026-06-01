@@ -5,10 +5,15 @@ alias tv := totvibe
 totvibe *args:
     bun start {{ args }}
 
-# Run the test suite (scoped to packages/ so reference_clones/ is never scanned)
+# Serve the totvibe web UI (Bun.serve + WebSocket agent backend in one process)
+alias w := serve
+serve *args:
+    bun run serve {{ args }}
+
+# Run both test suites: terminal (OpenTUI) and web (happy-dom)
 alias t := test
 test:
-    bun test ./packages
+    bun run test
 
 # Typecheck every workspace package
 alias tc := typecheck
