@@ -1,0 +1,12 @@
+{
+  "extends": "@totvibe/tsconfig/web.json",
+  "include": ["happydom.ts", "src"],
+  "exclude": ["src/tui"],
+  "references": [
+    { "path": "../core" },
+    { "path": "../protocol" },
+    { "path": "../runtime" },
+    { "path": "../view" },
+    { "path": "../../apps/web" }
+  ]
+}

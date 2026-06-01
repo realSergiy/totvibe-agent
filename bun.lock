@@ -6,6 +6,7 @@
       "name": "totvibe",
       "devDependencies": {
         "@eslint/js": "^10.0.1",
+        "@totvibe/tsconfig": "workspace:*",
         "@types/bun": "latest",
         "@types/react": "^19",
         "eslint": "^10.4.1",
@@ -117,6 +118,13 @@
         "@totvibe/core": "workspace:*",
         "@totvibe/sandbox": "workspace:*",
         "zod": "^4",
+      },
+    },
+    "packages/tsconfig": {
+      "name": "@totvibe/tsconfig",
+      "version": "0.1.0",
+      "dependencies": {
+        "@opentui/react": "latest",
       },
     },
     "packages/view": {
@@ -300,6 +308,8 @@
     "@totvibe/tests": ["@totvibe/tests@workspace:packages/tests"],
 
     "@totvibe/tools": ["@totvibe/tools@workspace:packages/tools"],
+
+    "@totvibe/tsconfig": ["@totvibe/tsconfig@workspace:packages/tsconfig"],
 
     "@totvibe/tui": ["@totvibe/tui@workspace:apps/tui"],
 

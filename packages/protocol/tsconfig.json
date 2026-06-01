@@ -1,0 +1,5 @@
+{
+  "extends": "@totvibe/tsconfig/iso.json",
+  "include": ["src"],
+  "references": [{ "path": "../core" }, { "path": "../safety" }, { "path": "../sandbox" }]
+}

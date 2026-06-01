@@ -27,6 +27,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .cache
 *.tsbuildinfo
 
+# project-references typecheck output (tsc -b emits .d.ts here; never consumed at runtime)
+.tsbuild
+
 # IntelliJ based IDEs
 .idea
 

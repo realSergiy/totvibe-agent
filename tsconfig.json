@@ -1,23 +1,17 @@
 {
-  "compilerOptions": {
-    "lib": ["ESNext", "DOM"],
-    "target": "ESNext",
-    "module": "Preserve",
-    "moduleDetection": "force",
-    "jsx": "react-jsx",
-    "jsxImportSource": "react",
-    "allowJs": true,
-    "types": ["bun", "react"],
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true
-  },
-  "include": ["packages/*/src", "apps/*/src", "eslint.config.ts", "packages/tests/happydom.ts"],
-  "exclude": ["apps/tui/src", "packages/tests/src/tui"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.tooling.json" },
+    { "path": "./packages/core" },
+    { "path": "./packages/sandbox" },
+    { "path": "./packages/safety" },
+    { "path": "./packages/tools" },
+    { "path": "./packages/protocol" },
+    { "path": "./packages/view" },
+    { "path": "./packages/runtime" },
+    { "path": "./apps/web" },
+    { "path": "./apps/tui" },
+    { "path": "./packages/tests" },
+    { "path": "./packages/tests/src/tui" }
+  ]
 }

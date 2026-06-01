@@ -1,5 +1,6 @@
 [global]
 disable = ["MD033", "MD013"]
+exclude = ["reference_clones"]
 
 [MD024]
 siblings-only = true

@@ -3,7 +3,12 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import tseslint from "typescript-eslint";
 
 export default defineConfig(
-  globalIgnores(["reference_clones/**", "**/node_modules/**", "packages/sandbox/**/target/**"]),
+  globalIgnores([
+    "reference_clones/**",
+    "**/node_modules/**",
+    "**/.tsbuild/**",
+    "packages/sandbox/**/target/**",
+  ]),
   eslint.configs.recommended,
   tseslint.configs.strictTypeChecked,
   {

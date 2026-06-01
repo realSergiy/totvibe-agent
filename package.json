@@ -10,7 +10,7 @@
   "scripts": {
     "start": "bun run apps/tui/src/index.tsx",
     "serve": "bun run apps/tui/src/index.tsx --serve",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/tui/tsconfig.json && tsc --noEmit -p packages/tests/src/tui/tsconfig.json",
+    "typecheck": "tsc -b",
     "lint": "eslint .",
     "knip": "knip-bun",
     "test": "bun run test:tui && bun run test:web",
@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@totvibe/tsconfig": "workspace:*",
     "@types/bun": "latest",
     "@types/react": "^19",
     "eslint": "^10.4.1",
