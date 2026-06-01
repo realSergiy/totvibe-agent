@@ -20,10 +20,10 @@ export async function validateApiKey(
       signal: AbortSignal.timeout(15_000),
     });
     if (response.status === 401 || response.status === 403) {
-      return { ok: false, rejected: true, reason: `rejected (HTTP ${response.status})` };
+      return { ok: false, rejected: true, reason: `rejected (HTTP ${String(response.status)})` };
     }
     if (response.ok) return { ok: true, rejected: false };
-    return { ok: false, rejected: false, reason: `HTTP ${response.status}` };
+    return { ok: false, rejected: false, reason: `HTTP ${String(response.status)}` };
   } catch (error) {
     const reason = error instanceof Error ? error.message : "network error";
     return { ok: false, rejected: false, reason };

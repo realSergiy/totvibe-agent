@@ -2,7 +2,7 @@ import { findLatestSessionId, loadSessionMessages } from "@totvibe/core";
 import type { ModelMessage } from "ai";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { findProvider, PROVIDERS, type ProviderInfo } from "./registry";
+import { DEFAULT_PROVIDER, findProvider, PROVIDERS, type ProviderInfo } from "./registry";
 
 const SYSTEM_PROMPT = `You are totvibe, a minimalist coding assistant running in a terminal.
 You operate inside the user's current working directory. Use the tools to read files, list directories, write files, and run shell commands.
@@ -71,7 +71,7 @@ async function resolveSession(
 }
 
 export async function loadInitialConfig(cli: CliOptions): Promise<InitialConfig> {
-  const providerName = (process.env.AI_PROVIDER ?? "qwen").toLowerCase();
+  const providerName = (process.env.AI_PROVIDER ?? DEFAULT_PROVIDER.name).toLowerCase();
   const provider = findProvider(providerName);
   if (!provider) {
     const known = PROVIDERS.map((entry) => entry.name).join(", ");

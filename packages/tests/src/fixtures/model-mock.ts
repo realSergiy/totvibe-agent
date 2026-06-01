@@ -16,7 +16,7 @@ export function resetModelReply(): void {
 function streamText() {
   const reply = scriptedReply;
   return {
-    fullStream: (async function* () {
+    fullStream: (function* () {
       yield { type: "text-delta", text: reply };
     })(),
     response: Promise.resolve({ messages: [{ role: "assistant", content: reply }] }),
@@ -26,4 +26,4 @@ function streamText() {
   };
 }
 
-mock.module("@totvibe/core/ai-core", () => ({ ...realExports, streamText }));
+void mock.module("@totvibe/core/ai-core", () => ({ ...realExports, streamText }));

@@ -27,6 +27,7 @@ import {
 } from "../state/providers";
 import { isProviderDialogOpenAtom } from "../state/ui";
 import {
+  DEFAULT_PROVIDER,
   findProvider,
   isConnected,
   PROVIDERS,
@@ -37,7 +38,7 @@ import type { InitialConfig } from "../providers/config";
 import { saveEnvVars } from "../actions";
 
 export interface AgentController {
-  init(): void;
+  start(): void;
   submit(text: string): void;
   cancel(): void;
   resolveApproval(granted: boolean): void;
@@ -139,33 +140,34 @@ export function createController(config: InitialConfig, store: Store): AgentCont
     }
   }
 
+  store.set(configAtom, config);
+  store.set(messagesAtom, []);
+  store.set(isStreamingAtom, false);
+  store.set(agentStatusAtom, "ready");
+  store.set(pendingApprovalAtom, null);
+  const configuredProvider = findProvider(config.providerName) ?? DEFAULT_PROVIDER;
+  const activeProvider = isConnected(configuredProvider)
+    ? configuredProvider
+    : (PROVIDERS.find(isConnected) ?? configuredProvider);
+  store.set(providerNameAtom, activeProvider.name);
+  store.set(
+    modelIdAtom,
+    activeProvider === configuredProvider ? config.modelId : activeProvider.defaultModel,
+  );
+  store.set(isProviderDialogOpenAtom, !isConnected(activeProvider));
+  if (config.initialMessages.length > 0) {
+    store.set(appendMessageAtom, {
+      role: "tool",
+      text: `resumed session ${config.sessionId} (${String(config.initialMessages.length)} messages)`,
+    });
+  }
+
   return {
-    init() {
-      store.set(configAtom, config);
-      store.set(messagesAtom, []);
-      store.set(isStreamingAtom, false);
-      store.set(agentStatusAtom, "ready");
-      store.set(pendingApprovalAtom, null);
-      const configuredProvider = findProvider(config.providerName)!;
-      const activeProvider = isConnected(configuredProvider)
-        ? configuredProvider
-        : (PROVIDERS.find(isConnected) ?? configuredProvider);
-      store.set(providerNameAtom, activeProvider.name);
-      store.set(
-        modelIdAtom,
-        activeProvider === configuredProvider ? config.modelId : activeProvider.defaultModel,
-      );
-      store.set(isProviderDialogOpenAtom, !isConnected(activeProvider));
+    start() {
       refreshConnection();
-      void probeSandbox(config.sandboxNet, config.sandbox).then((sandboxStatus) =>
-        store.set(sandboxStatusAtom, sandboxStatus),
-      );
-      if (config.initialMessages.length > 0) {
-        store.set(appendMessageAtom, {
-          role: "tool",
-          text: `resumed session ${config.sessionId} (${config.initialMessages.length} messages)`,
-        });
-      }
+      void probeSandbox(config.sandboxNet, config.sandbox).then((sandboxStatus) => {
+        store.set(sandboxStatusAtom, sandboxStatus);
+      });
     },
 
     submit(text) {
@@ -174,13 +176,12 @@ export function createController(config: InitialConfig, store: Store): AgentCont
         store.set(isProviderDialogOpenAtom, true);
         return;
       }
-      const grantMatch = trimmedText.match(/^\/grant\s+(.+)$/);
-      if (grantMatch) {
-        const path = grantMatch[1]!.trim();
-        sandbox.grantReadWrite(path);
+      const grantPath = trimmedText.match(/^\/grant\s+(.+)$/)?.[1]?.trim();
+      if (grantPath) {
+        sandbox.grantReadWrite(grantPath);
         store.set(appendMessageAtom, {
           role: "tool",
-          text: `granted read/write: ${path}`,
+          text: `granted read/write: ${grantPath}`,
         });
         return;
       }
@@ -226,19 +227,4 @@ export function createController(config: InitialConfig, store: Store): AgentCont
       refreshConnection();
     },
   };
-}
-
-let activeController: AgentController | null = null;
-
-export function initController(config: InitialConfig, store: Store): AgentController {
-  activeController = createController(config, store);
-  activeController.init();
-  return activeController;
-}
-
-export function getController(): AgentController {
-  if (!activeController) {
-    throw new Error("controller not initialized — call initController first");
-  }
-  return activeController;
 }

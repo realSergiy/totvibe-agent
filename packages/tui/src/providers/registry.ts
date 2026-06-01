@@ -17,27 +17,19 @@ export interface ProviderInfo {
   metadata: ModelMetadata;
 }
 
+export const DEFAULT_PROVIDER: ProviderInfo = {
+  name: "glm",
+  label: "Z.ai GLM Coding Plan (Global)",
+  apiKeyEnv: "ZAI_API_KEY",
+  defaultModel: "glm-5.1",
+  baseURL: "https://api.z.ai/api/coding/paas/v4",
+  keyUrl: "https://z.ai/manage-apikey/apikey-list",
+  keyHint: "Z.ai → API keys (GLM Coding Plan).",
+  metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
+};
+
 export const PROVIDERS: ProviderInfo[] = [
-  {
-    name: "qwen",
-    label: "Alibaba Qwen",
-    apiKeyEnv: "DASHSCOPE_API_KEY",
-    defaultModel: "qwen3.7-max",
-    baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
-    keyUrl: "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
-    keyHint: "Alibaba Cloud Model Studio → API keys.",
-    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 1.6, costPerMTokOutput: 6.4, supportsReasoning: false },
-  },
-  {
-    name: "glm",
-    label: "Z.ai GLM Coding Plan (Global)",
-    apiKeyEnv: "ZAI_API_KEY",
-    defaultModel: "glm-5.1",
-    baseURL: "https://api.z.ai/api/coding/paas/v4",
-    keyUrl: "https://z.ai/manage-apikey/apikey-list",
-    keyHint: "Z.ai → API keys (GLM Coding Plan).",
-    metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
-  },
+  DEFAULT_PROVIDER,
   {
     name: "glm-cn",
     label: "Zhipu GLM Coding Plan (China)",
@@ -47,6 +39,16 @@ export const PROVIDERS: ProviderInfo[] = [
     keyUrl: "https://open.bigmodel.cn/usercenter/apikeys",
     keyHint: "Zhipu BigModel → API keys (GLM Coding Plan).",
     metadata: { contextWindow: 204800, maxOutputTokens: 8192, costPerMTokInput: 0.6, costPerMTokOutput: 2.2, supportsReasoning: true },
+  },
+  {
+    name: "qwen",
+    label: "Alibaba Qwen",
+    apiKeyEnv: "DASHSCOPE_API_KEY",
+    defaultModel: "qwen3.7-max",
+    baseURL: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    keyUrl: "https://www.alibabacloud.com/help/en/model-studio/get-api-key",
+    keyHint: "Alibaba Cloud Model Studio → API keys.",
+    metadata: { contextWindow: 262144, maxOutputTokens: 8192, costPerMTokInput: 1.6, costPerMTokOutput: 6.4, supportsReasoning: false },
   },
   {
     name: "kimi",

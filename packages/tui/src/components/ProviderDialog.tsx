@@ -4,16 +4,16 @@ import { decodePasteBytes, type InputRenderable } from "@opentui/core";
 import { useAtomValue, useSetAtom } from "jotai";
 import { connectionStatusAtom, modelIdAtom, providerNameAtom } from "../state/providers";
 import { isProviderDialogOpenAtom } from "../state/ui";
-import { isConnected, PROVIDERS, type ProviderInfo } from "../providers/registry";
+import { DEFAULT_PROVIDER, isConnected, PROVIDERS, type ProviderInfo } from "../providers/registry";
 import { validateApiKey } from "../providers/client";
-import { getController } from "../agent/controller";
+import { useController } from "../agent/controllerContext";
 import { openKeyPage } from "../actions";
 import { theme } from "../theme";
 
 type DialogMode = "select" | "key" | "model";
 
 export function ProviderDialog() {
-  const controller = getController();
+  const controller = useController();
   const activeProviderName = useAtomValue(providerNameAtom);
   const activeModelId = useAtomValue(modelIdAtom);
   const connectionStatus = useAtomValue(connectionStatusAtom);
@@ -30,7 +30,7 @@ export function ProviderDialog() {
   const keyInputRef = useRef<InputRenderable>(null);
   const modelInputRef = useRef<InputRenderable>(null);
 
-  const highlightedProvider = PROVIDERS[highlightedIndex]!;
+  const highlightedProvider = PROVIDERS[highlightedIndex] ?? DEFAULT_PROVIDER;
   const resolveModelId = (provider: ProviderInfo) =>
     provider.name === activeProviderName ? activeModelId : provider.defaultModel;
 
@@ -49,7 +49,7 @@ export function ProviderDialog() {
     setNotice(`Verifying ${highlightedProvider.apiKeyEnv}…`);
     const check = await validateApiKey(highlightedProvider, apiKey);
     if (check.rejected) {
-      setNotice(`${highlightedProvider.apiKeyEnv} ${check.reason}. Check the key and try again.`);
+      setNotice(`${highlightedProvider.apiKeyEnv} ${check.reason ?? ""}. Check the key and try again.`);
       return;
     }
     if (keyInputRef.current) keyInputRef.current.value = "";
@@ -57,7 +57,7 @@ export function ProviderDialog() {
     setNotice(
       check.ok
         ? `Saved ${highlightedProvider.apiKeyEnv} to .env · key verified`
-        : `Saved ${highlightedProvider.apiKeyEnv} to .env · couldn't verify (${check.reason})`,
+        : `Saved ${highlightedProvider.apiKeyEnv} to .env · couldn't verify (${check.reason ?? ""})`,
     );
     setMode("select");
     controller.selectProvider(highlightedProvider.name, resolveModelId(highlightedProvider));
@@ -75,8 +75,8 @@ export function ProviderDialog() {
       check.ok
         ? `${provider.label}: connection OK`
         : check.rejected
-          ? `${provider.label}: key rejected (${check.reason})`
-          : `${provider.label}: unreachable (${check.reason})`,
+          ? `${provider.label}: key rejected (${check.reason ?? ""})`
+          : `${provider.label}: unreachable (${check.reason ?? ""})`,
     );
   };
 
@@ -86,7 +86,7 @@ export function ProviderDialog() {
     if (!pasted) return;
     event.preventDefault();
     const keyInput = keyInputRef.current;
-    if (keyInput) keyInput.value = `${keyInput.value ?? ""}${pasted}`;
+    if (keyInput) keyInput.value = `${keyInput.value}${pasted}`;
     if (mode !== "key") setMode("key");
   });
 

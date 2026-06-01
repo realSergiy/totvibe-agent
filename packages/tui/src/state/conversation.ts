@@ -19,7 +19,7 @@ export const appendMessageAtom = atom(
   (get, set, message: { role: Role; text: string }) => {
     const id = get(messageIdCounterAtom) + 1;
     set(messageIdCounterAtom, id);
-    set(messagesAtom, [...get(messagesAtom), { id: `m${id}`, ...message }]);
+    set(messagesAtom, [...get(messagesAtom), { id: `m${String(id)}`, ...message }]);
   },
 );
 

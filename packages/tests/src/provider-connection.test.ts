@@ -12,6 +12,6 @@ test("arrowing down moves the highlight to the next provider", async () => {
   const scene = await arrange.unconnected();
   scene.assert.frameShows("▶ ○ Alibaba Qwen");
   await scene.act.pressArrowDown();
-  scene.assert.frameShows("▶ ○ Z.ai GLM Coding Plan (Global)");
+  scene.assert.frameShows("▶ ○ Moonshot Kimi");
   await scene.dispose();
 });

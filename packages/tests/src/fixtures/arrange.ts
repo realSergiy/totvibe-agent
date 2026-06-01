@@ -5,7 +5,7 @@ import { resetModelReply, setModelReply } from "./model-mock";
 
 const CONNECTED_PROVIDER_KEYS = { DASHSCOPE_API_KEY: "fixture-key-qwen" };
 
-export interface Scene {
+interface Scene {
   act: Act;
   assert: Assert;
   dispose: () => Promise<void>;

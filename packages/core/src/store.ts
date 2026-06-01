@@ -53,6 +53,6 @@ export async function findLatestSessionId(dir: string): Promise<string | undefin
   } catch {
     return undefined;
   }
-  if (entries.length === 0) return undefined;
-  return entries.sort((a, b) => b.fileModTime - a.fileModTime)[0]!.name;
+  const [latest] = entries.sort((a, b) => b.fileModTime - a.fileModTime);
+  return latest?.name;
 }

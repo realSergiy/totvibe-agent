@@ -1,20 +1,17 @@
-import { useState } from "react";
 import { useKeyboard, useRenderer } from "@opentui/react";
-import { getDefaultStore, useAtomValue, useStore } from "jotai";
+import { useAtomValue, useStore } from "jotai";
 import { isProviderDialogOpenAtom } from "./state/ui";
 import { isStreamingAtom, pendingApprovalAtom } from "./state/session";
-import { getController, initController } from "./agent/controller";
-import type { InitialConfig } from "./providers/config";
+import { useController } from "./agent/controllerContext";
 import { StatusBar } from "./components/StatusBar";
 import { Conversation } from "./components/Conversation";
 import { InputBar } from "./components/InputBar";
 import { ApprovalPrompt } from "./components/ApprovalPrompt";
 import { ProviderDialog } from "./components/ProviderDialog";
 
-export function App({ config }: { config: InitialConfig }) {
-  useState(() => initController(config, getDefaultStore()));
+export function App() {
   const renderer = useRenderer();
-  const controller = getController();
+  const controller = useController();
   const store = useStore();
   const isProviderDialogOpen = useAtomValue(isProviderDialogOpenAtom);
 

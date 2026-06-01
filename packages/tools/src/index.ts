@@ -24,11 +24,11 @@ async function capOutput(text: string, label: string): Promise<string> {
   const spillPath = join(
     tmpdir(),
     "totvibe",
-    `${label}-${process.pid}-${spillCounter}.txt`,
+    `${label}-${String(process.pid)}-${String(spillCounter)}.txt`,
   );
   await Bun.write(spillPath, text);
   const head = text.slice(0, OUTPUT_CHAR_CAP);
-  return `${head}\n\n[output truncated: showed ${OUTPUT_CHAR_CAP} of ${text.length} chars; full output saved to ${spillPath} — read_file it if you need the rest]`;
+  return `${head}\n\n[output truncated: showed ${String(OUTPUT_CHAR_CAP)} of ${String(text.length)} chars; full output saved to ${spillPath} — read_file it if you need the rest]`;
 }
 
 async function canonicalizePath(target: string): Promise<string> {
@@ -119,7 +119,7 @@ export function createBuiltinTools(
     }),
     execute: async ({ path, content }, { cwd }) => {
       await Bun.write(await resolveInSandbox(cwd, path), content);
-      return `Wrote ${content.length} bytes to ${path}`;
+      return `Wrote ${String(content.length)} bytes to ${path}`;
     },
   });
 
@@ -146,7 +146,7 @@ export function createBuiltinTools(
         .trimEnd();
       const tag = result.sandboxed ? "" : " (unsandboxed)";
       return await capOutput(
-        `exit ${result.exitCode}${tag}\n${body}`.trimEnd(),
+        `exit ${String(result.exitCode)}${tag}\n${body}`.trimEnd(),
         "run_bash",
       );
     },

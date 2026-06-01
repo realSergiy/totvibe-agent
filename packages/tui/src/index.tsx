@@ -3,7 +3,7 @@ import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import { defineCommand, runMain } from "citty";
 import { loadInitialConfig } from "./providers/config";
-import { App } from "./App";
+import { Root } from "./Root";
 
 const main = defineCommand({
   meta: {
@@ -38,7 +38,7 @@ const main = defineCommand({
       targetFps: 30,
       useMouse: false,
     });
-    createRoot(renderer).render(<App config={config} />);
+    createRoot(renderer).render(<Root config={config} />);
   },
 });
 

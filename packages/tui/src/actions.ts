@@ -17,7 +17,7 @@ export async function saveEnvVars(updates: Record<string, string>): Promise<void
     return line;
   });
 
-  while (rewritten.length && rewritten[rewritten.length - 1]!.trim() === "") rewritten.pop();
+  while (rewritten.at(-1)?.trim() === "") rewritten.pop();
 
   for (const [name, value] of Object.entries(updates)) {
     if (!written.has(name)) rewritten.push(`${name}=${value}`);

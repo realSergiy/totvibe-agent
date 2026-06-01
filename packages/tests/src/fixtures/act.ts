@@ -16,8 +16,14 @@ export function createAct(world: World) {
         await world.setup.mockInput.typeText(text);
         world.setup.mockInput.pressEnter();
       }),
-    pressArrowDown: () => settle(() => world.setup.mockInput.pressArrow("down")),
-    pressKey: (key: string) => settle(() => world.setup.mockInput.pressKey(key)),
+    pressArrowDown: () =>
+      settle(() => {
+        world.setup.mockInput.pressArrow("down");
+      }),
+    pressKey: (key: string) =>
+      settle(() => {
+        world.setup.mockInput.pressKey(key);
+      }),
   };
 }
 

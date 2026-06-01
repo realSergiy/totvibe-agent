@@ -18,5 +18,5 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true
   },
-  "include": ["packages/*/src"]
+  "include": ["packages/*/src", "eslint.config.ts"]
 }

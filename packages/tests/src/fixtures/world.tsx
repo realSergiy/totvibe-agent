@@ -1,6 +1,6 @@
 import { act } from "react";
 import { testRender } from "@opentui/react/test-utils";
-import { App } from "@totvibe/tui/app";
+import { Root } from "@totvibe/tui/root";
 import type { InitialConfig } from "@totvibe/tui/providers/config";
 
 const PROVIDER_KEY_ENV_VARS = [
@@ -47,7 +47,7 @@ export async function renderWorld(options: WorldOptions = {}): Promise<World> {
   const restoreFetch = stubFetchOk();
   let setup!: RenderSetup;
   await act(async () => {
-    setup = await testRender(<App config={buildConfig()} />, {
+    setup = await testRender(<Root config={buildConfig()} />, {
       width: 120,
       height: 40,
       exitOnCtrlC: false,
@@ -58,6 +58,7 @@ export async function renderWorld(options: WorldOptions = {}): Promise<World> {
     setup,
     async dispose() {
       await act(async () => {
+        await setup.flush();
         setup.renderer.destroy();
       });
       restoreFetch();
@@ -70,14 +71,14 @@ function isolateProviderEnv(connectedKeys: Record<string, string>): () => void {
   const previous = new Map<string, string | undefined>();
   for (const name of PROVIDER_KEY_ENV_VARS) {
     previous.set(name, process.env[name]);
-    delete process.env[name];
+    Reflect.deleteProperty(process.env, name);
   }
   for (const [name, value] of Object.entries(connectedKeys)) {
     process.env[name] = value;
   }
   return () => {
     for (const [name, value] of previous) {
-      if (value === undefined) delete process.env[name];
+      if (value === undefined) Reflect.deleteProperty(process.env, name);
       else process.env[name] = value;
     }
   };
@@ -85,7 +86,7 @@ function isolateProviderEnv(connectedKeys: Record<string, string>): () => void {
 
 function stubFetchOk(): () => void {
   const original = globalThis.fetch;
-  globalThis.fetch = (async () => new Response(null, { status: 200 })) as unknown as typeof fetch;
+  globalThis.fetch = (() => Promise.resolve(new Response(null, { status: 200 }))) as unknown as typeof fetch;
   return () => {
     globalThis.fetch = original;
   };

@@ -6,7 +6,7 @@ import { theme } from "../theme";
 
 const BANNERS = [bannerPagga, bannerBlurvision, bannerSlant, bannerBloody];
 
-const banner = BANNERS[Math.floor(Math.random() * BANNERS.length)]!.replace(/\n+$/, "");
+const banner = (BANNERS[Math.floor(Math.random() * BANNERS.length)] ?? "").replace(/\n+$/, "");
 
 export function Banner() {
   return (
