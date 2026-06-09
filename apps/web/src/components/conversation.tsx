@@ -1,8 +1,8 @@
 import { messagesAtom } from '@totvibe/view';
 import { useAtomValue } from 'jotai';
 
-import { Banner } from './Banner';
-import { MessageView } from './MessageView';
+import { Banner } from './banner';
+import { MessageView } from './message-view';
 
 export const Conversation = () => {
   const messages = useAtomValue(messagesAtom);

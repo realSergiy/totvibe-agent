@@ -2,8 +2,8 @@ import { type AgentController, ControllerContext, type Store } from '@totvibe/vi
 import { createStore, Provider } from 'jotai';
 import { useEffect, useState } from 'react';
 
-import { App } from './App';
-import { createSocketController } from './createSocketController';
+import { App } from './app';
+import { createSocketController } from './create-socket-controller';
 
 export type RootProps = {
   create?: (store: Store) => { controller: AgentController; start: () => void };

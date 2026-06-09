@@ -39,7 +39,7 @@ typecheck:
 
 # Lint and format every workspace package: eslint --fix + prettier --write
 lint:
-    uv run --group lint rumdl check --fix
+    uv run rumdl check --fix
     bun run lint:fix
     bun run format
 

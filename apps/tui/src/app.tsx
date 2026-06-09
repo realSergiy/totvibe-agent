@@ -2,11 +2,11 @@ import { useKeyboard, useRenderer } from '@opentui/react';
 import { isProviderDialogOpenAtom, isStreamingAtom, pendingApprovalAtom, useController } from '@totvibe/view';
 import { useAtomValue, useStore } from 'jotai';
 
-import { ApprovalPrompt } from './components/ApprovalPrompt';
-import { Conversation } from './components/Conversation';
-import { InputBar } from './components/InputBar';
-import { ProviderDialog } from './components/ProviderDialog';
-import { StatusBar } from './components/StatusBar';
+import { ApprovalPrompt } from './components/approval-prompt';
+import { Conversation } from './components/conversation';
+import { InputBar } from './components/input-bar';
+import { ProviderDialog } from './components/provider-dialog';
+import { StatusBar } from './components/status-bar';
 
 export const App = () => {
   const renderer = useRenderer();

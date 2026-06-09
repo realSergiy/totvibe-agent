@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": "./src/Root.tsx",
+    ".": "./src/root.tsx",
     "./server": "./src/server.ts"
   },
   "dependencies": {

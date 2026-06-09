@@ -9,12 +9,6 @@ export default defineConfig(
   }),
   { settings: { react: { version: '19.0' } } },
   {
-    files: ['**/*.{ts,tsx,js,mjs,cjs}'],
-    rules: {
-      'unicorn/filename-case': ['error', { cases: { camelCase: true, kebabCase: true, pascalCase: true } }],
-    },
-  },
-  {
     files: ['apps/tui/src/**/*.{ts,tsx}'],
     rules: { 'react/no-unknown-property': 'off' },
   },

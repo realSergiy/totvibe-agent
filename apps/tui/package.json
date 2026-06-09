@@ -8,7 +8,7 @@
   },
   "exports": {
     ".": "./src/index.tsx",
-    "./root": "./src/Root.tsx"
+    "./root": "./src/root.tsx"
   },
   "dependencies": {
     "@opentui/core": "catalog:",

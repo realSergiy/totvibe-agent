@@ -4,7 +4,7 @@ import { createRoot } from '@opentui/react';
 import { loadInitialConfig } from '@totvibe/runtime';
 import { defineCommand, runMain } from 'citty';
 
-import { Root } from './Root';
+import { Root } from './root';
 
 const main = defineCommand({
   args: {

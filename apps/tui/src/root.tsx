@@ -4,8 +4,8 @@ import { ControllerContext } from '@totvibe/view';
 import { createStore, Provider } from 'jotai';
 import { useEffect, useState } from 'react';
 
-import { createLocalController } from './agent/createLocalController';
-import { App } from './App';
+import { createLocalController } from './agent/create-local-controller';
+import { App } from './app';
 
 export const Root = ({ config }: { config: InitialConfig }) => {
   const [{ controller, start, store }] = useState(() => {
