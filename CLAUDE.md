@@ -8,4 +8,4 @@
 - **Test suites are isolated processes:** `test:tui` never preloads happy-dom, `test:web` always does; shared behavior lives in `sharedStories/` over the `Harness` interface and asserts on content, not terminal glyphs.
 - **Bun-native only:** `Bun.serve` (never Vite/express), `bun test`, `Bun.file`, `bun:sqlite`, `Bun.sql`, `Bun.redis` — no Node-library equivalents.
 - **One agent runtime per web connection:** created on WebSocket open, torn down on close.
-- **`just check` is the gate:** knip → typecheck → lint (eslint --fix + prettier --write) → test must pass before done; never silence a quality tool to get there.
+- **`just check` is the gate:** install → knip → typecheck → lint (eslint --fix + prettier --write) → test must pass before done; never silence a quality tool to get there.

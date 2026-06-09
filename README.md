@@ -24,12 +24,12 @@ No key needed up front — the connect dialog (below) walks you through it on fi
 ## Run
 
 ```bash
-bun start          # or: just totvibe
+bun start          # or: just up
 ```
 
 Type a request and press Enter. `read_file` and `list_dir` run automatically; `write_file` and `run_bash` ask for approval (`y` to run, `n` to skip). **Esc** cancels the running turn; **Ctrl+C** quits. The status bar shows the active `provider:model`, connection state, and sandbox status. Each turn is persisted append-only under `~/.totvibe/sessions`; resume with `--continue` (most recent) or `--resume <id>`.
 
-The sandbox is **on by default**, confining everything to the working directory. Pass `--no-sandbox` (e.g. `bun start --no-sandbox` or `just totvibe --no-sandbox`) to run without it; `bun start --help` lists every flag.
+The sandbox is **on by default**, confining everything to the working directory. Pass `--no-sandbox` (e.g. `bun start --no-sandbox` or `just up --no-sandbox`) to run without it; `bun start --help` lists every flag.
 
 ### Sandboxing (Linux)
 
