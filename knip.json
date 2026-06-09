@@ -4,7 +4,7 @@
     "apps/web": {
       "entry": ["src/frontend.tsx", "src/index.html"]
     },
-    "packages/tests": {
+    "tests": {
       "entry": ["src/web/happydom.ts", "src/web/web.test.ts", "src/sharedStories/*.ts"]
     }
   }

@@ -94,26 +94,6 @@
       "name": "@totvibe/sandbox",
       "version": "0.1.0",
     },
-    "packages/tests": {
-      "name": "@totvibe/tests",
-      "version": "0.1.0",
-      "dependencies": {
-        "@opentui/react": "catalog:",
-        "@totvibe/core": "workspace:*",
-        "@totvibe/protocol": "workspace:*",
-        "@totvibe/runtime": "workspace:*",
-        "@totvibe/tui": "workspace:*",
-        "@totvibe/view": "workspace:*",
-        "@totvibe/web": "workspace:*",
-        "react": "catalog:",
-        "react-dom": "catalog:",
-      },
-      "devDependencies": {
-        "@happy-dom/global-registrator": "catalog:",
-        "@testing-library/react": "catalog:",
-        "@types/react-dom": "catalog:",
-      },
-    },
     "packages/tools": {
       "name": "@totvibe/tools",
       "version": "0.1.0",
@@ -140,6 +120,26 @@
         "@totvibe/sandbox": "workspace:*",
         "jotai": "catalog:",
         "react": "catalog:",
+      },
+    },
+    "tests": {
+      "name": "@totvibe/tests",
+      "version": "0.1.0",
+      "dependencies": {
+        "@opentui/react": "catalog:",
+        "@totvibe/core": "workspace:*",
+        "@totvibe/protocol": "workspace:*",
+        "@totvibe/runtime": "workspace:*",
+        "@totvibe/tui": "workspace:*",
+        "@totvibe/view": "workspace:*",
+        "@totvibe/web": "workspace:*",
+        "react": "catalog:",
+        "react-dom": "catalog:",
+      },
+      "devDependencies": {
+        "@happy-dom/global-registrator": "catalog:",
+        "@testing-library/react": "catalog:",
+        "@types/react-dom": "catalog:",
       },
     },
   },
@@ -375,7 +375,7 @@
 
     "@totvibe/sandbox": ["@totvibe/sandbox@workspace:packages/sandbox"],
 
-    "@totvibe/tests": ["@totvibe/tests@workspace:packages/tests"],
+    "@totvibe/tests": ["@totvibe/tests@workspace:tests"],
 
     "@totvibe/tools": ["@totvibe/tools@workspace:packages/tools"],
 

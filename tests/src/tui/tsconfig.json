@@ -2,5 +2,5 @@
   "extends": "@totvibe/tsconfig/tui.json",
   "compilerOptions": { "paths": { "@/*": ["../*"] } },
   "include": ["."],
-  "references": [{ "path": "../../../../apps/tui" }, { "path": "../.." }]
+  "references": [{ "path": "../../../apps/tui" }, { "path": "../.." }]
 }

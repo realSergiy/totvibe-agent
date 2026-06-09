@@ -4,8 +4,8 @@
   "include": ["."],
   "references": [
     { "path": "../.." },
-    { "path": "../../../runtime" },
-    { "path": "../../../view" },
-    { "path": "../../../../apps/web" }
+    { "path": "../../../packages/runtime" },
+    { "path": "../../../packages/view" },
+    { "path": "../../../apps/web" }
   ]
 }

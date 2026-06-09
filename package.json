@@ -10,7 +10,8 @@
   "workspaces": {
     "packages": [
       "apps/*",
-      "packages/*"
+      "packages/*",
+      "tests"
     ],
     "catalog": {
       "@ai-sdk/openai-compatible": "^2",
@@ -45,8 +46,8 @@
     "format": "prettier --write .",
     "knip": "knip-bun",
     "test": "bun run test:tui && bun run test:web",
-    "test:tui": "bun test packages/tests/src/tui packages/tests/src/wire.test.ts",
-    "test:web": "bun test --preload ./packages/tests/src/web/happydom.ts packages/tests/src/web",
+    "test:tui": "bun test tests/src/tui tests/src/wire.test.ts",
+    "test:web": "bun test --preload ./tests/src/web/happydom.ts tests/src/web",
     "build:sandbox": "bash scripts/build-sandbox.sh",
     "upgrade": "npm-check-updates --root --workspaces --format group"
   },
