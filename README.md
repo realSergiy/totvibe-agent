@@ -24,12 +24,12 @@ No key needed up front — the connect dialog (below) walks you through it on fi
 ## Run
 
 ```bash
-bun start          # or: just totvibe
+bun start          # or: just up
 ```
 
 Type a request and press Enter. `read_file` and `list_dir` run automatically; `write_file` and `run_bash` ask for approval (`y` to run, `n` to skip). **Esc** cancels the running turn; **Ctrl+C** quits. The status bar shows the active `provider:model`, connection state, and sandbox status. Each turn is persisted append-only under `~/.totvibe/sessions`; resume with `--continue` (most recent) or `--resume <id>`.
 
-The sandbox is **on by default**, confining everything to the working directory. Pass `--no-sandbox` (e.g. `bun start --no-sandbox` or `just totvibe --no-sandbox`) to run without it; `bun start --help` lists every flag.
+The sandbox is **on by default**, confining everything to the working directory. Pass `--no-sandbox` (e.g. `bun start --no-sandbox` or `just up --no-sandbox`) to run without it; `bun start --help` lists every flag.
 
 ### Sandboxing (Linux)
 
@@ -61,43 +61,43 @@ The status bar reflects real connectivity for the active provider: it probes `/m
 
 Read from the environment (Bun loads `.env` automatically):
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `AI_PROVIDER` | `qwen` | One of the OpenAI-compatible providers below |
-| `MODEL` | per provider | Override the model id |
-| `<PROVIDER>_API_KEY` | — | Key for the selected provider (see table below) |
-| `AUTO_APPROVE` | unset | `1` enables Auto mode: auto-approve mutating tools **except** the absolute-deny list (`rm -rf /`, force-push, …) |
-| `TOTVIBE_SANDBOX_NET` | `none` | `inherit` to let sandboxed `run_bash` use the network |
-| `TOTVIBE_SANDBOX_BIN` | — | Override the path to the sandbox helper binary |
-| `TOTVIBE_MAX_STEPS` | `24` | Hard cap on model steps per turn |
-| `TOTVIBE_WALL_CLOCK_MS` | `600000` | Hard wall-clock cap per turn (ms) |
-| `TOTVIBE_TOKEN_BUDGET` | ctx × 8 | Hard token cap per turn |
-| `TOTVIBE_APPROVAL_TIMEOUT_MS` | `0` | Approval-prompt timeout (`0` = wait indefinitely) |
-| `TOTVIBE_DATA_DIR` | `~/.totvibe` | Where sessions + the approval/audit ledger are stored |
+| Variable                      | Default      | Purpose                                                                                                          |
+| ----------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `AI_PROVIDER`                 | `qwen`       | One of the OpenAI-compatible providers below                                                                     |
+| `MODEL`                       | per provider | Override the model id                                                                                            |
+| `<PROVIDER>_API_KEY`          | —            | Key for the selected provider (see table below)                                                                  |
+| `AUTO_APPROVE`                | unset        | `1` enables Auto mode: auto-approve mutating tools **except** the absolute-deny list (`rm -rf /`, force-push, …) |
+| `TOTVIBE_SANDBOX_NET`         | `none`       | `inherit` to let sandboxed `run_bash` use the network                                                            |
+| `TOTVIBE_SANDBOX_BIN`         | —            | Override the path to the sandbox helper binary                                                                   |
+| `TOTVIBE_MAX_STEPS`           | `24`         | Hard cap on model steps per turn                                                                                 |
+| `TOTVIBE_WALL_CLOCK_MS`       | `600000`     | Hard wall-clock cap per turn (ms)                                                                                |
+| `TOTVIBE_TOKEN_BUDGET`        | ctx × 8      | Hard token cap per turn                                                                                          |
+| `TOTVIBE_APPROVAL_TIMEOUT_MS` | `0`          | Approval-prompt timeout (`0` = wait indefinitely)                                                                |
+| `TOTVIBE_DATA_DIR`            | `~/.totvibe` | Where sessions + the approval/audit ledger are stored                                                            |
 
 Command-line flags (parsed with [citty](https://github.com/unjs/citty)) — run `bun start --help` for the full list:
 
-| Flag | Default | Purpose |
-|---|---|---|
-| `--no-sandbox` | sandbox on | Start without the filesystem/network sandbox |
-| `--resume <id>` | — | Resume a saved session by id (see `~/.totvibe/sessions`) |
-| `--continue` | off | Resume the most recently saved session |
+| Flag            | Default    | Purpose                                                  |
+| --------------- | ---------- | -------------------------------------------------------- |
+| `--no-sandbox`  | sandbox on | Start without the filesystem/network sandbox             |
+| `--resume <id>` | —          | Resume a saved session by id (see `~/.totvibe/sessions`) |
+| `--continue`    | off        | Resume the most recently saved session                   |
 
 ## Connecting other provider-models
 
 Easiest path is the connect dialog above (type **`/provider`**) — it opens the key page and saves the key for you. To configure by hand instead: every provider below is OpenAI-compatible (via `@ai-sdk/openai-compatible`) — set `AI_PROVIDER`, its key, and optionally a `MODEL`. No code change needed.
 
-| `AI_PROVIDER` | Model | API key env | Base URL | Get a key |
-|---|---|---|---|---|
-| `qwen` | Alibaba `qwen3.7-max` | `DASHSCOPE_API_KEY` | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1` | [Model Studio](https://www.alibabacloud.com/help/en/model-studio/get-api-key) |
-| `glm` | Z.ai `glm-5.1` (GLM Coding Plan, Global) | `ZAI_API_KEY` | `https://api.z.ai/api/coding/paas/v4` | [Z.ai](https://z.ai/manage-apikey/apikey-list) |
-| `glm-cn` | Zhipu `glm-5.1` (GLM Coding Plan, China) | `ZHIPU_API_KEY` | `https://open.bigmodel.cn/api/coding/paas/v4` | [Zhipu BigModel](https://open.bigmodel.cn/usercenter/apikeys) |
-| `kimi` | Moonshot `kimi-k2.6` | `MOONSHOT_API_KEY` | `https://api.moonshot.ai/v1` | [Kimi platform](https://platform.moonshot.ai/console/api-keys) |
-| `mimo` | Xiaomi `mimo-v2.5-pro` | `MIMO_API_KEY` | `https://api.xiaomimimo.com/v1` | [MiMo platform](https://platform.xiaomimimo.com) |
-| `deepseek` | DeepSeek `deepseek-v4-pro` | `DEEPSEEK_API_KEY` | `https://api.deepseek.com/v1` | [DeepSeek platform](https://platform.deepseek.com/api_keys) |
-| `gemini` | Google `gemini-3.5-flash` | `GEMINI_API_KEY` | `https://generativelanguage.googleapis.com/v1beta/openai` | [Google AI Studio](https://aistudio.google.com/apikey) |
-| `minimax` | MiniMax `minimax-m2.7` | `MINIMAX_API_KEY` | `https://api.minimax.io/v1` | [MiniMax platform](https://www.minimax.io/platform/user-center/basic-information/interface-key) |
-| `mistral` | Mistral `mistral-large-3` | `MISTRAL_API_KEY` | `https://api.mistral.ai/v1` | [Mistral console](https://console.mistral.ai/api-keys) |
+| `AI_PROVIDER` | Model                                    | API key env         | Base URL                                                  | Get a key                                                                                       |
+| ------------- | ---------------------------------------- | ------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| `qwen`        | Alibaba `qwen3.7-max`                    | `DASHSCOPE_API_KEY` | `https://dashscope-intl.aliyuncs.com/compatible-mode/v1`  | [Model Studio](https://www.alibabacloud.com/help/en/model-studio/get-api-key)                   |
+| `glm`         | Z.ai `glm-5.1` (GLM Coding Plan, Global) | `ZAI_API_KEY`       | `https://api.z.ai/api/coding/paas/v4`                     | [Z.ai](https://z.ai/manage-apikey/apikey-list)                                                  |
+| `glm-cn`      | Zhipu `glm-5.1` (GLM Coding Plan, China) | `ZHIPU_API_KEY`     | `https://open.bigmodel.cn/api/coding/paas/v4`             | [Zhipu BigModel](https://open.bigmodel.cn/usercenter/apikeys)                                   |
+| `kimi`        | Moonshot `kimi-k2.6`                     | `MOONSHOT_API_KEY`  | `https://api.moonshot.ai/v1`                              | [Kimi platform](https://platform.moonshot.ai/console/api-keys)                                  |
+| `mimo`        | Xiaomi `mimo-v2.5-pro`                   | `MIMO_API_KEY`      | `https://api.xiaomimimo.com/v1`                           | [MiMo platform](https://platform.xiaomimimo.com)                                                |
+| `deepseek`    | DeepSeek `deepseek-v4-pro`               | `DEEPSEEK_API_KEY`  | `https://api.deepseek.com/v1`                             | [DeepSeek platform](https://platform.deepseek.com/api_keys)                                     |
+| `gemini`      | Google `gemini-3.5-flash`                | `GEMINI_API_KEY`    | `https://generativelanguage.googleapis.com/v1beta/openai` | [Google AI Studio](https://aistudio.google.com/apikey)                                          |
+| `minimax`     | MiniMax `minimax-m2.7`                   | `MINIMAX_API_KEY`   | `https://api.minimax.io/v1`                               | [MiniMax platform](https://www.minimax.io/platform/user-center/basic-information/interface-key) |
+| `mistral`     | Mistral `mistral-large-3`                | `MISTRAL_API_KEY`   | `https://api.mistral.ai/v1`                               | [Mistral console](https://console.mistral.ai/api-keys)                                          |
 
 The model id in the table is the default for that provider; override it with `MODEL` to match the provider's current catalog. Example — DeepSeek:
 
@@ -119,7 +119,7 @@ To add another OpenAI-compatible provider, append one entry (including its model
 
 A Bun workspaces monorepo. Each package is one architectural concern, so each can evolve without touching the others.
 
-*How a request flows through the packages, and where the extension seams (tools, policy middleware, persistence) plug in.*
+_How a request flows through the packages, and where the extension seams (tools, policy middleware, persistence) plug in._
 
 ```mermaid
 flowchart TD
@@ -165,13 +165,13 @@ flowchart TD
     Gate -.->|"approval y/n"| Render
 ```
 
-| Package | Owns | Extend by |
-|---|---|---|
-| `@totvibe/core` | The owned `runAgent` loop, the `AgentEvent` union + `EventBus`, the append-only `SessionStore` (JSONL, resume-by-id), the value-typed tool registry, and `compose` for middleware | Adding event kinds; subscribing to the event stream; wrapping the loop in a reasoning strategy |
-| `@totvibe/tools` | The built-in tool *values* (`defineTool`), with token-capped output | Adding a tool — return it from `createBuiltinTools` |
-| `@totvibe/safety` | The policy engine (`policyGate`: precedence deny→mode→allow→ask + absolute-deny) and the append-only `AuditLedger` | Composing more middleware (e.g. a classifier) before the executor |
-| `@totvibe/sandbox` | The `SandboxState` allow-list + Rust Landlock/namespace helper for `run_bash` | New default paths; per-tool network policy; another OS backend |
-| `@totvibe/tui` | The OpenTUI React view + entry + provider config, a non-React controller that drives the loop, and Jotai atoms as the view's single source of truth | Adding leaf components that subscribe to the atoms they read; the controller owns the run loop + AbortController |
+| Package            | Owns                                                                                                                                                                              | Extend by                                                                                                        |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `@totvibe/core`    | The owned `runAgent` loop, the `AgentEvent` union + `EventBus`, the append-only `SessionStore` (JSONL, resume-by-id), the value-typed tool registry, and `compose` for middleware | Adding event kinds; subscribing to the event stream; wrapping the loop in a reasoning strategy                   |
+| `@totvibe/tools`   | The built-in tool _values_ (`defineTool`), with token-capped output                                                                                                               | Adding a tool — return it from `createBuiltinTools`                                                              |
+| `@totvibe/safety`  | The policy engine (`policyGate`: precedence deny→mode→allow→ask + absolute-deny) and the append-only `AuditLedger`                                                                | Composing more middleware (e.g. a classifier) before the executor                                                |
+| `@totvibe/sandbox` | The `SandboxState` allow-list + Rust Landlock/namespace helper for `run_bash`                                                                                                     | New default paths; per-tool network policy; another OS backend                                                   |
+| `@totvibe/tui`     | The OpenTUI React view + entry + provider config, a non-React controller that drives the loop, and Jotai atoms as the view's single source of truth                               | Adding leaf components that subscribe to the atoms they read; the controller owns the run loop + AbortController |
 
 The loop is provider-agnostic: the model is injected, so swapping `qwen3.7-max` for another model or provider is a config change, not a code change.
 

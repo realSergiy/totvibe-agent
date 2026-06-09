@@ -1,0 +1,22 @@
+{
+  "name": "@totvibe/tests",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@opentui/react": "catalog:",
+    "@totvibe/core": "workspace:*",
+    "@totvibe/protocol": "workspace:*",
+    "@totvibe/runtime": "workspace:*",
+    "@totvibe/tui": "workspace:*",
+    "@totvibe/view": "workspace:*",
+    "@totvibe/web": "workspace:*",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@happy-dom/global-registrator": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@types/react-dom": "catalog:"
+  }
+}

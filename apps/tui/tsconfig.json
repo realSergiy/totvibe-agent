@@ -1,9 +1,10 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "jsx": "react-jsx",
-    "jsxImportSource": "@opentui/react"
-  },
+  "extends": "@totvibe/tsconfig/tui.json",
+  "compilerOptions": { "paths": { "@/*": ["./src/*"] } },
   "include": ["src"],
-  "exclude": []
+  "references": [
+    { "path": "../../packages/protocol" },
+    { "path": "../../packages/runtime" },
+    { "path": "../../packages/view" }
+  ]
 }

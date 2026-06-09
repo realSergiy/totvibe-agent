@@ -1,12 +1,17 @@
-import { readdir } from "node:fs/promises";
-import { join } from "node:path";
-import type { ModelMessage } from "./ai-core";
-import type { AgentEvent } from "./events";
-import { JsonlLog } from "./jsonl";
+import { readdir } from 'node:fs/promises';
+import path from 'node:path';
+import { z } from 'zod';
 
-interface MessageRecord {
+import type { AgentEvent } from './events';
+
+import { type ModelMessage, modelMessageSchema } from './ai-core';
+import { JsonlLog } from './jsonl';
+
+type MessageRecord = {
   message: ModelMessage;
-}
+};
+
+const messageRecordSchema = z.object({ message: modelMessageSchema });
 
 export class SessionStore {
   private readonly log: JsonlLog;
@@ -18,41 +23,40 @@ export class SessionStore {
     this.log = new JsonlLog(sessionFilePath(dir, sessionId));
   }
 
-  readonly persist = (event: AgentEvent): void => {
-    if (event.type !== "message") return;
-    this.log.append({ message: event.message } satisfies MessageRecord);
-  };
-
-  flushed(): Promise<void> {
+  flushed() {
     return this.log.flushed();
   }
+
+  readonly persist = (event: AgentEvent) => {
+    if (event.type !== 'message') return;
+    this.log.append({ message: event.message } satisfies MessageRecord);
+  };
 }
 
-function sessionFilePath(dir: string, sessionId: string): string {
-  return join(dir, `${sessionId}.jsonl`);
-}
+const sessionFilePath = (dir: string, sessionId: string) => path.join(dir, `${sessionId}.jsonl`);
 
-export async function loadSessionMessages(dir: string, sessionId: string): Promise<ModelMessage[]> {
+export const loadSessionMessages = async (dir: string, sessionId: string) => {
   const log = new JsonlLog(sessionFilePath(dir, sessionId));
-  const records = (await log.readAll()) as MessageRecord[];
-  return records.map((record) => record.message);
-}
+  const rawRecords = await log.readAll();
+  const records = rawRecords.map(record => messageRecordSchema.parse(record));
+  return records.map(record => record.message);
+};
 
-export async function findLatestSessionId(dir: string): Promise<string | undefined> {
-  let entries: Array<{ name: string; fileModTime: number }>;
+export const findLatestSessionId = async (dir: string) => {
+  let entries: { fileModTime: number; name: string }[];
   try {
     const names = await readdir(dir);
     entries = await Promise.all(
       names
-        .filter((name) => name.endsWith(".jsonl"))
-        .map(async (name) => {
-          const stat = await Bun.file(join(dir, name)).stat();
-          return { name: name.slice(0, -".jsonl".length), fileModTime: stat.mtimeMs };
+        .filter(name => name.endsWith('.jsonl'))
+        .map(async name => {
+          const stat = await Bun.file(path.join(dir, name)).stat();
+          return { fileModTime: stat.mtimeMs, name: name.slice(0, -'.jsonl'.length) };
         }),
     );
   } catch {
-    return undefined;
+    return;
   }
-  const [latest] = entries.sort((a, b) => b.fileModTime - a.fileModTime);
+  const [latest] = entries.toSorted((a, b) => b.fileModTime - a.fileModTime);
   return latest?.name;
-}
+};

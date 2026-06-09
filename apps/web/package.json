@@ -3,18 +3,18 @@
   "version": "0.1.0",
   "type": "module",
   "exports": {
-    ".": "./src/Root.tsx",
+    ".": "./src/root.tsx",
     "./server": "./src/server.ts"
   },
   "dependencies": {
     "@totvibe/protocol": "workspace:*",
     "@totvibe/runtime": "workspace:*",
     "@totvibe/view": "workspace:*",
-    "jotai": "^2",
-    "react": "^19",
-    "react-dom": "^19"
+    "jotai": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@types/react-dom": "^19"
+    "@types/react-dom": "catalog:"
   }
 }

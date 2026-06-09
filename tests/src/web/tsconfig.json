@@ -1,0 +1,11 @@
+{
+  "extends": "@totvibe/tsconfig/web.json",
+  "compilerOptions": { "paths": { "@/*": ["../*"] } },
+  "include": ["."],
+  "references": [
+    { "path": "../.." },
+    { "path": "../../../packages/runtime" },
+    { "path": "../../../packages/view" },
+    { "path": "../../../apps/web" }
+  ]
+}

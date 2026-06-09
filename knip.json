@@ -2,11 +2,10 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "workspaces": {
     "apps/web": {
-      "entry": ["src/frontend.tsx", "src/index.html", "src/html-modules.d.ts"]
+      "entry": ["src/frontend.tsx", "src/index.html"]
     },
-    // Entries knip can't auto-detect: happydom.ts (preload target), web.test.ts (path behind --preload), sharedStories/* (dynamic import).
-    "packages/tests": {
-      "entry": ["happydom.ts", "src/web/web.test.ts", "src/sharedStories/*.ts"]
+    "tests": {
+      "entry": ["src/web/happydom.ts", "src/web/web.test.ts", "src/sharedStories/*.ts"]
     }
   }
 }

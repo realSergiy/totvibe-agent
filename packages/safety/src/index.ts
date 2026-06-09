@@ -1,92 +1,94 @@
-import type { Middleware, ToolRisk } from "@totvibe/core";
-import { decidePolicy, resolveAction, type PolicyMode } from "./policy";
+import type { Middleware, ToolRisk } from '@totvibe/core';
 
-export * from "./policy";
-export * from "./ledger";
+import { decidePolicy, type PolicyMode, resolveAction } from './policy';
 
-export interface ApprovalRequest {
+export * from './ledger';
+export * from './policy';
+
+export type ApprovalDecision = 'allow' | 'approved' | 'denied' | 'deny' | 'timeout';
+
+export type ApprovalRequest = {
+  command?: string;
+  input: unknown;
   name: string;
   risk: ToolRisk;
+};
+
+export type PolicyDecisionRecord = {
+  absolute: boolean;
+  decision: ApprovalDecision;
   input: unknown;
-  command?: string;
-}
-
-export type ApprovalDecision = "allow" | "deny" | "approved" | "denied" | "timeout";
-
-export interface PolicyDecisionRecord {
+  reason: string;
+  risk: ToolRisk;
   time: string;
   tool: string;
-  risk: ToolRisk;
-  decision: ApprovalDecision;
-  reason: string;
-  absolute: boolean;
-  input: unknown;
-}
+};
 
-export interface PolicyGateOptions {
+export type PolicyGateOptions = {
+  approvalTimeoutMs?: number;
   approve: (request: ApprovalRequest) => Promise<boolean>;
   mode?: PolicyMode;
-  approvalTimeoutMs?: number;
   onDecision?: (record: PolicyDecisionRecord) => void;
-}
+};
 
-export function policyGate(options: PolicyGateOptions): Middleware {
-  const mode = options.mode ?? "default";
-  return async (invocation, next) => {
+type AskOutcome = 'timeout' | boolean;
+
+export const policyGate = (options: PolicyGateOptions) => {
+  const mode = options.mode ?? 'default';
+  const gate: Middleware = async (invocation, next) => {
     const action = resolveAction(invocation.name, invocation.risk, invocation.input);
     const verdict = decidePolicy(action, mode);
 
-    const record = (decision: ApprovalDecision, reason: string): void => {
+    const record = (decision: ApprovalDecision, reason: string) => {
       options.onDecision?.({
+        absolute: verdict.absolute,
+        decision,
+        input: action.input,
+        reason,
+        risk: action.risk,
         time: new Date().toISOString(),
         tool: action.name,
-        risk: action.risk,
-        decision,
-        reason,
-        absolute: verdict.absolute,
-        input: action.input,
       });
     };
 
-    if (verdict.decision === "allow") {
-      record("allow", verdict.reason);
+    if (verdict.decision === 'allow') {
+      record('allow', verdict.reason);
       return next();
     }
-    if (verdict.decision === "deny") {
-      record("deny", verdict.reason);
+    if (verdict.decision === 'deny') {
+      record('deny', verdict.reason);
       return denialFeedback(action.name, verdict.reason, verdict.absolute);
     }
 
     const granted = await askWithTimeout(
       options.approve,
-      { name: action.name, risk: action.risk, input: action.input, command: action.command },
+      { command: action.command, input: action.input, name: action.name, risk: action.risk },
       options.approvalTimeoutMs,
     );
-    if (granted === "timeout") {
-      record("timeout", "approval timed out");
+    if (granted === 'timeout') {
+      record('timeout', 'approval timed out');
       return `Approval for "${action.name}" timed out, so it was not run. Continue without it or propose a safer alternative.`;
     }
     if (!granted) {
-      record("denied", "the user did not approve it");
-      return denialFeedback(action.name, "the user did not approve it", false);
+      record('denied', 'the user did not approve it');
+      return denialFeedback(action.name, 'the user did not approve it', false);
     }
-    record("approved", "the user approved it");
+    record('approved', 'the user approved it');
     return next();
   };
-}
+  return gate;
+};
 
-type AskOutcome = boolean | "timeout";
-
-async function askWithTimeout(
+const askWithTimeout = async (
   approve: (request: ApprovalRequest) => Promise<boolean>,
   request: ApprovalRequest,
   timeoutMs?: number,
-): Promise<AskOutcome> {
+) => {
   if (!timeoutMs || timeoutMs <= 0) return approve(request);
   let timer: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<AskOutcome>((resolve) => {
+  const timeout = new Promise<AskOutcome>(resolve => {
     timer = setTimeout(() => {
-      resolve("timeout");
+      resolve('timeout');
     }, timeoutMs);
   });
   try {
@@ -94,11 +96,11 @@ async function askWithTimeout(
   } finally {
     if (timer) clearTimeout(timer);
   }
-}
+};
 
-function denialFeedback(name: string, reason: string, absolute: boolean): string {
+const denialFeedback = (name: string, reason: string, absolute: boolean) => {
   const head = absolute
     ? `Blocked: "${name}" is on the absolute-deny list (${reason}) and cannot be approved.`
     : `Denied: "${name}" was not run (${reason}).`;
   return `${head} Re-read the request and choose a safer approach instead of retrying the same action.`;
-}
+};

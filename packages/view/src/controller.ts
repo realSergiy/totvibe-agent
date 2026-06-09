@@ -1,21 +1,21 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext } from 'react';
 
-export interface AgentController {
-  submit(text: string): void;
+export type AgentController = {
   cancel(): void;
-  resolveApproval(granted: boolean): void;
-  selectProvider(providerName: string, modelId: string): void;
-  saveApiKey(providerName: string, apiKey: string): void;
-  testConnection(providerName: string): void;
   openKeyPage(url: string): void;
-}
+  resolveApproval(granted: boolean): void;
+  saveApiKey(providerName: string, apiKey: string): void;
+  selectProvider(providerName: string, modelId: string): void;
+  submit(text: string): void;
+  testConnection(providerName: string): void;
+};
 
-export const ControllerContext = createContext<AgentController | null>(null);
+export const ControllerContext = createContext<AgentController | undefined>(undefined);
 
-export function useController(): AgentController {
+export const useController = () => {
   const controller = useContext(ControllerContext);
   if (!controller) {
-    throw new Error("useController must be used within a ControllerContext provider");
+    throw new Error('useController must be used within a ControllerContext provider');
   }
   return controller;
-}
+};

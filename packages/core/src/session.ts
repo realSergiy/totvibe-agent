@@ -1,10 +1,8 @@
-import type { ModelMessage } from "./ai-core";
+import type { ModelMessage } from './ai-core';
 
-export interface Session {
+export type Session = {
   id: string;
   messages: ModelMessage[];
-}
+};
 
-export function createSession(id: string = crypto.randomUUID(), messages: ModelMessage[] = []): Session {
-  return { id, messages };
-}
+export const createSession = (id: string = crypto.randomUUID(), messages: ModelMessage[] = []) => ({ id, messages });

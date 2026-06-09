@@ -1,0 +1,9 @@
+{
+  "extends": "@totvibe/tsconfig/web.json",
+  "include": ["src"],
+  "references": [
+    { "path": "../../packages/protocol" },
+    { "path": "../../packages/runtime" },
+    { "path": "../../packages/view" }
+  ]
+}

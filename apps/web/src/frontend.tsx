@@ -1,8 +1,9 @@
-import { createRoot } from "react-dom/client";
-import { Root } from "./Root";
-import "./index.css";
+import { createRoot } from 'react-dom/client';
 
-const container = document.getElementById("root");
+import { Root } from './root';
+import './index.css';
+
+const container = document.querySelector('#root');
 if (container) {
   createRoot(container).render(<Root />);
 }

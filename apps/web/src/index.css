@@ -19,7 +19,13 @@ body,
 body {
   background: var(--bg);
   color: #c0caf5;
-  font: 14px/1.5 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font:
+    14px/1.5 ui-monospace,
+    SFMono-Regular,
+    'SF Mono',
+    Menlo,
+    Consolas,
+    monospace;
 }
 
 .app {
