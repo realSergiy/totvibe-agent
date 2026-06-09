@@ -9,15 +9,13 @@ export type ApiKeyCheck = {
   rejected: boolean;
 };
 
-const asLanguageModel = (model: LanguageModel) => model;
-
-export const buildModel = (provider: ProviderInfo, modelId: string) => {
+export const buildModel = (provider: ProviderInfo, modelId: string): LanguageModel => {
   const openaiCompatible = createOpenAICompatible({
     apiKey: process.env[provider.apiKeyEnv],
     baseURL: provider.baseURL,
     name: provider.name,
   });
-  return asLanguageModel(openaiCompatible(modelId));
+  return openaiCompatible(modelId);
 };
 
 export const validateApiKey = async (provider: ProviderInfo, apiKey: string) => {

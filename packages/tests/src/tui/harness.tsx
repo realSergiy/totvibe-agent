@@ -3,10 +3,10 @@ import { Root } from '@totvibe/tui/root';
 import { expect } from 'bun:test';
 import { act } from 'react';
 
-import type { Scene } from '../sharedStories/harness';
+import type { Scene } from '@/sharedStories/harness';
 
-import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '../fixtures/config';
-import { resetModelReply, setModelReply } from '../fixtures/model-mock';
+import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '@/fixtures/config';
+import { resetModelReply, setModelReply } from '@/fixtures/model-mock';
 
 type RenderOptions = {
   connectedProviderKeys?: Record<string, string>;

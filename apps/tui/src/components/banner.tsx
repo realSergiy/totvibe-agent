@@ -1,9 +1,9 @@
 import { theme } from '@totvibe/view';
 
-import bannerBloody from '../assets/banner-bloody.txt' with { type: 'text' };
-import bannerBlurvision from '../assets/banner-blurvision.txt' with { type: 'text' };
-import bannerSlant from '../assets/banner-slant.txt' with { type: 'text' };
-import bannerPagga from '../assets/banner.txt' with { type: 'text' };
+import bannerBloody from '@/assets/banner-bloody.txt' with { type: 'text' };
+import bannerBlurvision from '@/assets/banner-blurvision.txt' with { type: 'text' };
+import bannerSlant from '@/assets/banner-slant.txt' with { type: 'text' };
+import bannerPagga from '@/assets/banner.txt' with { type: 'text' };
 
 const BANNERS = [bannerPagga, bannerBlurvision, bannerSlant, bannerBloody];
 

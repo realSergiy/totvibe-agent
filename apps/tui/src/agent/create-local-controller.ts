@@ -1,7 +1,7 @@
 import { createRuntime, type InitialConfig } from '@totvibe/runtime';
 import { type AgentController, applyServerEvent, type Store } from '@totvibe/view';
 
-import { openKeyPage } from '../actions';
+import { openKeyPage } from '@/actions';
 
 type LocalController = {
   controller: AgentController;

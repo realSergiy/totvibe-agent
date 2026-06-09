@@ -1,6 +1,7 @@
 import { test } from 'bun:test';
 
-import { registerSharedScenarios } from '../sharedStories';
+import { registerSharedScenarios } from '@/sharedStories';
+
 import { tuiHarness } from './harness';
 
 registerSharedScenarios(tuiHarness);

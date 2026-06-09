@@ -1,5 +1,6 @@
 {
   "extends": "@totvibe/tsconfig/tui.json",
+  "compilerOptions": { "paths": { "@/*": ["./src/*"] } },
   "include": ["src"],
   "references": [
     { "path": "../../packages/protocol" },

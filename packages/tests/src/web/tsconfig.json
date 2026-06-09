@@ -1,5 +1,6 @@
 {
   "extends": "@totvibe/tsconfig/web.json",
+  "compilerOptions": { "paths": { "@/*": ["../*"] } },
   "include": ["."],
   "references": [
     { "path": "../.." },

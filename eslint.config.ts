@@ -4,28 +4,11 @@ import { defineConfig } from 'eslint/config';
 export default defineConfig(
   ...totvibe({
     ignores: ['reference_clones/**', '**/.tsbuild/**', 'packages/sandbox/**/target/**'],
-    react: true,
+    react: {
+      dom: ['apps/web/src/**/*.{ts,tsx}', 'packages/view/src/**/*.{ts,tsx}', 'packages/tests/src/web/**/*.{ts,tsx}'],
+      opentui: ['apps/tui/src/**/*.{ts,tsx}', 'packages/tests/src/tui/**/*.{ts,tsx}'],
+    },
+    reactVersion: '19.0',
     tsconfigRootDir: import.meta.dirname,
   }),
-  { settings: { react: { version: '19.0' } } },
-  {
-    files: ['apps/tui/src/**/*.{ts,tsx}'],
-    rules: { 'react/no-unknown-property': 'off' },
-  },
-  {
-    files: ['**/*.{ts,tsx}'],
-    rules: {
-      'no-restricted-syntax': [
-        'error',
-        {
-          message: 'Use an arrow function. If `this`/`arguments`/`new.target`/generators are needed, redesign.',
-          selector: 'FunctionDeclaration[generator=false]',
-        },
-        {
-          message: 'Use an arrow function. If `this`/`arguments`/`new.target`/generators are needed, redesign.',
-          selector: ':not(MethodDefinition, Property[method=true]) > FunctionExpression[generator=false]',
-        },
-      ],
-    },
-  },
 );

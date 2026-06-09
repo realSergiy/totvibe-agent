@@ -1,14 +1,14 @@
-import '../fixtures/model-mock';
+import '@/fixtures/model-mock';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { createRuntime } from '@totvibe/runtime';
 import { type AgentController, applyServerEvent, type Store } from '@totvibe/view';
 import { Root } from '@totvibe/web';
 import { act } from 'react';
 
-import type { Scene } from '../sharedStories/harness';
+import type { Scene } from '@/sharedStories/harness';
 
-import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '../fixtures/config';
-import { resetModelReply, setModelReply } from '../fixtures/model-mock';
+import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '@/fixtures/config';
+import { resetModelReply, setModelReply } from '@/fixtures/model-mock';
 
 type RenderOptions = {
   connectedProviderKeys?: Record<string, string>;
