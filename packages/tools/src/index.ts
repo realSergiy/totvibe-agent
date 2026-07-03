@@ -12,12 +12,16 @@ export type ToolOptions = {
 };
 
 const OUTPUT_CHAR_CAP = 100_000;
-let spillCounter = 0;
+const spillCounter = { value: 0 };
 
 const capOutput = async (text: string, label: string) => {
   if (text.length <= OUTPUT_CHAR_CAP) return text;
-  spillCounter += 1;
-  const spillPath = nodePath.join(tmpdir(), 'totvibe', `${label}-${String(process.pid)}-${String(spillCounter)}.txt`);
+  spillCounter.value += 1;
+  const spillPath = nodePath.join(
+    tmpdir(),
+    'totvibe',
+    `${label}-${String(process.pid)}-${String(spillCounter.value)}.txt`,
+  );
   await Bun.write(spillPath, text);
   const head = text.slice(0, OUTPUT_CHAR_CAP);
   return `${head}\n\n[output truncated: showed ${String(OUTPUT_CHAR_CAP)} of ${String(text.length)} chars; full output saved to ${spillPath} — read_file it if you need the rest]`;
@@ -41,11 +45,11 @@ const canonicalizePath = async (target: string) => {
 
 export const createBuiltinTools = (sandbox: SandboxState, options: ToolOptions = {}) => {
   const net: NetPolicy = options.net ?? 'none';
-  const sandboxEnabled = options.sandbox ?? true;
+  const isSandboxEnabled = options.sandbox ?? true;
 
   const resolveInSandbox = async (cwd: string, path: string) => {
     const target = nodePath.resolve(cwd, path);
-    if (!sandboxEnabled) return target;
+    if (!isSandboxEnabled) return target;
     if (!sandbox.allowsWrite(target)) {
       throw new Error(`Path outside the sandbox's writable dirs: ${path}. Ask the user to /grant it.`);
     }
@@ -76,7 +80,9 @@ export const createBuiltinTools = (sandbox: SandboxState, options: ToolOptions =
       const entries = await readdir(await resolveInSandbox(cwd, path), {
         withFileTypes: true,
       });
-      const names = entries.map(entry => (entry.isDirectory() ? `${entry.name}/` : entry.name)).toSorted();
+      const names = entries
+        .map(entry => (entry.isDirectory() ? `${entry.name}/` : entry.name))
+        .toSorted((a, b) => a.localeCompare(b));
       return await capOutput(names.join('\n') || '(empty)', 'list_dir');
     },
     inputSchema: z.object({
@@ -103,7 +109,7 @@ export const createBuiltinTools = (sandbox: SandboxState, options: ToolOptions =
   const runBash = defineTool({
     description: 'Run a shell command in a Landlock+namespace sandbox and return its combined output.',
     execute: async ({ command }, { cwd, signal }) => {
-      const result = await runSandboxedBash(command, sandbox, cwd, net, signal, sandboxEnabled);
+      const result = await runSandboxedBash(command, sandbox, cwd, net, signal, isSandboxEnabled);
       const body = [result.stdout, result.stderr].filter(Boolean).join('\n').trimEnd();
       const tag = result.sandboxed ? '' : ' (unsandboxed)';
       return await capOutput(`exit ${String(result.exitCode)}${tag}\n${body}`.trimEnd(), 'run_bash');

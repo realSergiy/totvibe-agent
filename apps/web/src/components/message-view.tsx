@@ -12,7 +12,11 @@ const ROLE_LABEL: Record<Role, string> = {
   user: 'you',
 };
 
-export const MessageView = ({ message }: { message: DisplayMessage }) => (
+type MessageViewProps = {
+  message: DisplayMessage;
+};
+
+export const MessageView = ({ message }: MessageViewProps) => (
   <div className="message">
     <div style={{ color: ROLE_COLOR[message.role] }}>{ROLE_LABEL[message.role]}</div>
     <div className="message-text">{message.text}</div>

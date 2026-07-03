@@ -37,11 +37,12 @@ knip:
 typecheck:
     bun run typecheck
 
-# Lint and format every workspace package: eslint --fix + prettier --write
+# Lint and format every workspace package (eslint --fix + prettier --write), then verify org invariants with cerberus.
 lint:
     uv run rumdl check --fix
     bun run lint:fix
     bun run format
+    uvx --from zyplux-cerberus cerberus --fix
 
 # Run both test suites: terminal (OpenTUI) and web (happy-dom)
 test:
@@ -66,3 +67,9 @@ upgrade *args='':
 upgrade-interactive:
     bun run upgrade -- -i
     bun install
+
+# Remove deps and caches from all workspaces.
+clean:
+    rm -rf node_modules apps/*/node_modules packages/*/node_modules tests/node_modules
+    rm -rf .rumdl_cache .tsbuild
+    find apps packages tests -type d -name .tsbuild -prune -exec rm -rf {} +

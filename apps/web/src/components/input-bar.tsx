@@ -1,9 +1,9 @@
-import { isStreamingAtom, useController } from '@totvibe/view';
+import { streamingAtom, useController } from '@totvibe/view';
 import { useAtomValue } from 'jotai';
 import { useState } from 'react';
 
 export const InputBar = () => {
-  const isStreaming = useAtomValue(isStreamingAtom);
+  const isStreaming = useAtomValue(streamingAtom);
   const controller = useController();
   const [value, setValue] = useState('');
 

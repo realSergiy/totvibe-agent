@@ -28,6 +28,8 @@ export const formatSandboxLabel = (sandboxStatus: SandboxStatus | undefined) => 
   return sandboxStatus.net === 'none' ? 'sandbox: fs+net' : 'sandbox: fs';
 };
 
+const TOOL_INPUT_PREVIEW_MAX_CHARS = 96;
+
 export const formatToolInput = (input: unknown) => {
   let text: string;
   try {
@@ -35,7 +37,7 @@ export const formatToolInput = (input: unknown) => {
   } catch {
     text = String(input);
   }
-  return text.length > 96 ? `${text.slice(0, 95)}…` : text;
+  return text.length > TOOL_INPUT_PREVIEW_MAX_CHARS ? `${text.slice(0, TOOL_INPUT_PREVIEW_MAX_CHARS - 1)}…` : text;
 };
 
 export const pickConnectionColor = (connectionStatus: ConnectionStatus) => {

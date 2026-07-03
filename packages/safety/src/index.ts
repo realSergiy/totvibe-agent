@@ -98,8 +98,8 @@ const askWithTimeout = async (
   }
 };
 
-const denialFeedback = (name: string, reason: string, absolute: boolean) => {
-  const head = absolute
+const denialFeedback = (name: string, reason: string, isAbsolute: boolean) => {
+  const head = isAbsolute
     ? `Blocked: "${name}" is on the absolute-deny list (${reason}) and cannot be approved.`
     : `Denied: "${name}" was not run (${reason}).`;
   return `${head} Re-read the request and choose a safer approach instead of retrying the same action.`;

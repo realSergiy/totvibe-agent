@@ -1,18 +1,47 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.tooling.json" },
-    { "path": "./packages/core" },
-    { "path": "./packages/sandbox" },
-    { "path": "./packages/safety" },
-    { "path": "./packages/tools" },
-    { "path": "./packages/protocol" },
-    { "path": "./packages/view" },
-    { "path": "./packages/runtime" },
-    { "path": "./apps/web" },
-    { "path": "./apps/tui" },
-    { "path": "./tests" },
-    { "path": "./tests/src/web" },
-    { "path": "./tests/src/tui" }
+    {
+      "path": "./tsconfig.tooling.json"
+    },
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/sandbox"
+    },
+    {
+      "path": "./packages/safety"
+    },
+    {
+      "path": "./packages/tools"
+    },
+    {
+      "path": "./packages/protocol"
+    },
+    {
+      "path": "./packages/view"
+    },
+    {
+      "path": "./packages/runtime"
+    },
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./apps/tui"
+    },
+    {
+      "path": "./tests"
+    },
+    {
+      "path": "./tests/tui"
+    },
+    {
+      "path": "./tests/web"
+    },
+    {
+      "path": "./tests/view"
+    }
   ]
 }

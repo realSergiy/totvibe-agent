@@ -21,13 +21,6 @@ export type SandboxStatus = {
 };
 
 export class SandboxState {
-  get readOnlyDirs() {
-    return [...this.readOnlyPaths];
-  }
-  get readWriteDirs() {
-    return [...this.readWritePaths];
-  }
-
   private readOnlyPaths: Set<string>;
 
   private readWritePaths: Set<string>;
@@ -39,7 +32,7 @@ export class SandboxState {
 
   allowsWrite(path: string) {
     const target = nodePath.resolve(path);
-    return this.readWriteDirs.some(dir => target === dir || target.startsWith(`${dir}/`));
+    return this.readWriteDirs().some(dir => target === dir || target.startsWith(`${dir}/`));
   }
 
   grantReadOnly(path: string) {
@@ -50,20 +43,28 @@ export class SandboxState {
     this.readWritePaths.add(nodePath.resolve(path));
   }
 
+  readOnlyDirs() {
+    return [...this.readOnlyPaths];
+  }
+
+  readWriteDirs() {
+    return [...this.readWritePaths];
+  }
+
   toEnv(net: NetPolicy) {
     return {
       SANDBOX_NET: net,
-      SANDBOX_RO_PATHS: this.readOnlyDirs.join(':'),
-      SANDBOX_RW_PATHS: this.readWriteDirs.join(':'),
+      SANDBOX_RO_PATHS: this.readOnlyDirs().join(':'),
+      SANDBOX_RW_PATHS: this.readWriteDirs().join(':'),
     };
   }
 }
 
 export const helperPath = () =>
-  process.env.TOTVIBE_SANDBOX_BIN ?? nodePath.resolve(import.meta.dir, '..', 'bin', 'totvibe-sandbox');
+  process.env.TOTVIBE_SANDBOX_BIN ?? nodePath.resolve(import.meta.dirname, '..', 'bin', 'totvibe-sandbox');
 
-export const probeSandbox = async (net: NetPolicy, enabled = true) => {
-  if (!enabled) {
+export const probeSandbox = async (net: NetPolicy, isEnabled = true) => {
+  if (!isEnabled) {
     return { available: false, degraded: false, enabled: false, hasLandlock: false, net };
   }
   const binary = helperPath();
@@ -83,11 +84,11 @@ export const runSandboxedBash = async (
   cwd: string,
   net: NetPolicy,
   signal?: AbortSignal,
-  enabled = true,
+  isEnabled = true,
 ) => {
   const binary = helperPath();
-  const sandboxed = enabled && (await Bun.file(binary).exists());
-  const child = sandboxed
+  const isSandboxed = isEnabled && (await Bun.file(binary).exists());
+  const child = isSandboxed
     ? Bun.spawn([binary, command], {
         cwd,
         env: { ...process.env, ...state.toEnv(net) },
@@ -99,5 +100,5 @@ export const runSandboxedBash = async (
 
   const [stdout, stderr] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text()]);
   const exitCode = await child.exited;
-  return { exitCode, sandboxed, stderr, stdout };
+  return { exitCode, sandboxed: isSandboxed, stderr, stdout };
 };

@@ -6,6 +6,8 @@ import { defineCommand, runMain } from 'citty';
 
 import { Root } from './root';
 
+const DEFAULT_SERVE_PORT = 3000;
+
 const main = defineCommand({
   args: {
     continue: {
@@ -40,7 +42,7 @@ const main = defineCommand({
   run: async ({ args }) => {
     if (args.serve) {
       const { startServer } = await import('@totvibe/web/server');
-      startServer({ port: Number.parseInt(args.port, 10) || 3000, sandbox: args.sandbox });
+      startServer({ port: Number(args.port) || DEFAULT_SERVE_PORT, sandbox: args.sandbox });
       return;
     }
     const config = await loadInitialConfig({

@@ -3,7 +3,7 @@ import { createContext, useContext } from 'react';
 export type AgentController = {
   cancel(): void;
   openKeyPage(url: string): void;
-  resolveApproval(granted: boolean): void;
+  resolveApproval(isGranted: boolean): void;
   saveApiKey(providerName: string, apiKey: string): void;
   selectProvider(providerName: string, modelId: string): void;
   submit(text: string): void;

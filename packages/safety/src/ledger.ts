@@ -13,7 +13,7 @@ export class AuditLedger {
     return this.log.flushed();
   }
 
-  readonly record = (entry: PolicyDecisionRecord) => {
+  record(entry: PolicyDecisionRecord) {
     this.log.append(entry);
-  };
+  }
 }
