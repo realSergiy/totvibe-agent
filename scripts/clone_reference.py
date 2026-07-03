@@ -16,10 +16,13 @@ from pathlib import Path
 
 
 def main() -> None:
-    if not 2 <= len(sys.argv) <= 3:
-        sys.exit("usage: clone_reference.py <owner/name|url> [ref]")
-    repo = sys.argv[1]
-    ref = sys.argv[2] if len(sys.argv) == 3 else ""
+    match sys.argv[1:]:
+        case [repo]:
+            ref = ""
+        case [repo, ref]:
+            pass
+        case _:
+            sys.exit("usage: clone_reference.py <owner/name|url> [ref]")
 
     is_url = "://" in repo or repo.startswith("git@")
     url = repo if is_url else f"https://github.com/{repo}.git"
