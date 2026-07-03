@@ -45,3 +45,9 @@ packages/sandbox/bin
 
 # Reference clones (regenerated via `just clone`)
 reference_clones
+
+# uv virtualenv and Python tool caches
+.venv
+__pycache__
+.ruff_cache
+.pytest_cache

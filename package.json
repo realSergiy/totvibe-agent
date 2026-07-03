@@ -22,6 +22,7 @@
       "@types/react": "^19",
       "@types/react-dom": "^19",
       "@vitest/coverage-istanbul": "^4.1.9",
+      "@zyplux/cz": "^0.3.0",
       "@zyplux/eslint-config": "^0.6.5",
       "ai": "^7",
       "citty": "^0.2.2",
@@ -48,14 +49,16 @@
     "format": "prettier --write .",
     "knip": "knip-bun",
     "test": "vitest run",
-    "build:sandbox": "bash scripts/build-sandbox.sh",
-    "upgrade": "npm-check-updates --root --workspaces --format group"
+    "build:sandbox": "./scripts/build_sandbox.py",
+    "upgrade": "npm-check-updates --root --workspaces --format group",
+    "cz": "cz"
   },
   "devDependencies": {
     "@totvibe/tsconfig": "workspace:*",
     "@types/bun": "catalog:",
     "@types/react": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
+    "@zyplux/cz": "catalog:",
     "@zyplux/eslint-config": "catalog:",
     "eslint": "catalog:",
     "happy-dom": "catalog:",
