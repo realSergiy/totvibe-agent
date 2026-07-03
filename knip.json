@@ -5,7 +5,7 @@
       "entry": ["src/frontend.tsx", "src/index.html"]
     },
     "tests": {
-      "entry": ["src/web/happydom.ts", "src/web/web.test.ts", "src/sharedStories/*.ts"]
+      "entry": ["src/shared-stories/*.ts"]
     }
   }
 }

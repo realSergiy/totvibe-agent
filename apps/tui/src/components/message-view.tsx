@@ -12,7 +12,11 @@ const ROLE_LABEL: Record<Role, string> = {
   user: 'you',
 };
 
-export const MessageView = ({ message }: { message: DisplayMessage }) => (
+type MessageViewProps = {
+  message: DisplayMessage;
+};
+
+export const MessageView = ({ message }: MessageViewProps) => (
   <box style={{ flexDirection: 'column' }}>
     <text fg={ROLE_COLOR[message.role]}>{ROLE_LABEL[message.role]}</text>
     <text>{message.text}</text>

@@ -8,9 +8,9 @@ export const ApprovalPrompt = () => {
 
   useEffect(() => {
     if (!pendingApproval) return;
-    const onKeydown = (event: KeyboardEvent) => {
-      if (event.key === 'y') controller.resolveApproval(true);
-      else if (event.key === 'n' || event.key === 'Escape') controller.resolveApproval(false);
+    const onKeydown = ({ key }: KeyboardEvent) => {
+      if (key === 'y') controller.resolveApproval(true);
+      else if (key === 'n' || key === 'Escape') controller.resolveApproval(false);
     };
     globalThis.addEventListener('keydown', onKeydown);
     return () => {

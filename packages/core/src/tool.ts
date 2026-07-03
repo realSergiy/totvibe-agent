@@ -49,39 +49,39 @@ export const defineTool = <Input>(definition: ToolDef<Input>): ToolDef<Input> =>
 
 export const executeToolCall = async (
   definitions: AnyToolDef[],
-  call: ToolCallRequest,
+  { input, toolCallId, toolName }: ToolCallRequest,
   context: ToolContext,
   middleware: Middleware,
 ) => {
-  const definition = findToolDefinition(definitions, call.toolName);
+  const definition = findToolDefinition(definitions, toolName);
   if (!definition) {
     return {
       isError: true,
-      text: `Unknown tool "${call.toolName}". Call one of the available tools instead.`,
-      toolCallId: call.toolCallId,
-      toolName: call.toolName,
+      text: `Unknown tool "${toolName}". Call one of the available tools instead.`,
+      toolCallId: toolCallId,
+      toolName: toolName,
     };
   }
   const invocation: ToolInvocation = {
-    input: call.input,
+    input: input,
     name: definition.name,
     risk: definition.risk,
   };
   try {
-    const text = await middleware(invocation, () => definition.execute(call.input, context));
+    const text = await middleware(invocation, () => definition.execute(input, context));
     return {
       isError: false,
       text,
-      toolCallId: call.toolCallId,
-      toolName: call.toolName,
+      toolCallId: toolCallId,
+      toolName: toolName,
     };
   } catch (error) {
     const text = error instanceof Error ? error.message : String(error);
     return {
       isError: true,
       text,
-      toolCallId: call.toolCallId,
-      toolName: call.toolName,
+      toolCallId: toolCallId,
+      toolName: toolName,
     };
   }
 };
@@ -89,7 +89,27 @@ export const executeToolCall = async (
 export const findToolDefinition = (definitions: AnyToolDef[], name: string) =>
   definitions.find(definition => definition.name === name);
 
-export const isReadOnly = (definition: AnyToolDef) => definition.risk === 'read';
+export const isReadOnly = ({ risk }: AnyToolDef) => risk === 'read';
+
+const collectReadOnlyBatch = (
+  definitions: AnyToolDef[],
+  calls: ToolCallRequest[],
+  startIndex: number,
+  context: ToolContext,
+  middleware: Middleware,
+) => {
+  const batch: Promise<ToolCallOutcome>[] = [];
+  let index = startIndex;
+  while (index < calls.length) {
+    const batchCall = calls[index];
+    if (!batchCall) return { batch, nextIndex: index };
+    const nextToolDef = findToolDefinition(definitions, batchCall.toolName);
+    if (!nextToolDef || !isReadOnly(nextToolDef)) return { batch, nextIndex: index };
+    batch.push(executeToolCall(definitions, batchCall, context, middleware));
+    index += 1;
+  }
+  return { batch, nextIndex: index };
+};
 
 export const runToolCalls = async (
   definitions: AnyToolDef[],
@@ -105,15 +125,8 @@ export const runToolCalls = async (
     const definition = findToolDefinition(definitions, call.toolName);
     if (definition && isReadOnly(definition)) {
       const batchStart = index;
-      const batch: Promise<ToolCallOutcome>[] = [];
-      while (index < calls.length) {
-        const batchCall = calls[index];
-        if (!batchCall) break;
-        const nextToolDef = findToolDefinition(definitions, batchCall.toolName);
-        if (!nextToolDef || !isReadOnly(nextToolDef)) break;
-        batch.push(executeToolCall(definitions, batchCall, context, middleware));
-        index += 1;
-      }
+      const { batch, nextIndex } = collectReadOnlyBatch(definitions, calls, index, context, middleware);
+      index = nextIndex;
       const settled = await Promise.all(batch);
       for (const [offset, outcome] of settled.entries()) {
         outcomes[batchStart + offset] = outcome;

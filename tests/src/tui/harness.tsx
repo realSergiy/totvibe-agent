@@ -1,9 +1,9 @@
 import { testRender } from '@opentui/react/test-utils';
 import { Root } from '@totvibe/tui/root';
-import { expect } from 'bun:test';
 import { act } from 'react';
+import { expect } from 'vitest';
 
-import type { Scene } from '@/sharedStories/harness';
+import type { Scene } from '@/shared-stories/harness';
 
 import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '@/fixtures/config';
 import { resetModelReply, setModelReply } from '@/fixtures/model-mock';
@@ -14,12 +14,15 @@ type RenderOptions = {
 
 type RenderSetup = Awaited<ReturnType<typeof testRender>>;
 
+const EVENTUALLY_MAX_PASSES = 50;
+const EVENTUALLY_PASS_DELAY_MS = 2;
+
 type TuiScene = Scene & {
   pressArrowDown(): Promise<void>;
 };
 
-const renderScene = async (options: RenderOptions) => {
-  const restoreEnv = isolateProviderEnv(options.connectedProviderKeys ?? {});
+const renderScene = async ({ connectedProviderKeys }: RenderOptions) => {
+  const restoreEnv = isolateProviderEnv(connectedProviderKeys ?? {});
   const restoreFetch = stubFetchOk();
   let setup!: RenderSetup;
   await act(async () => {
@@ -54,10 +57,10 @@ const renderScene = async (options: RenderOptions) => {
     assert: {
       eventuallyShows: async text => {
         await act(async () => {
-          for (let pass = 0; pass < 50; pass += 1) {
+          for (let pass = 0; pass < EVENTUALLY_MAX_PASSES; pass += 1) {
             await setup.flush();
             if (setup.captureCharFrame().includes(text)) return;
-            await new Promise(resolve => setTimeout(resolve, 2));
+            await new Promise(resolve => setTimeout(resolve, EVENTUALLY_PASS_DELAY_MS));
           }
         });
         frameShows(text);

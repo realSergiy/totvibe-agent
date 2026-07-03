@@ -66,3 +66,9 @@ upgrade *args='':
 upgrade-interactive:
     bun run upgrade -- -i
     bun install
+
+# Remove deps and caches from all workspaces.
+clean:
+    rm -rf node_modules apps/*/node_modules packages/*/node_modules tests/node_modules
+    rm -rf .rumdl_cache .tsbuild
+    find apps packages tests -type d -name .tsbuild -prune -exec rm -rf {} +

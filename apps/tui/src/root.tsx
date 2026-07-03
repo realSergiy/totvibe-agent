@@ -7,7 +7,11 @@ import { useEffect, useState } from 'react';
 import { createLocalController } from './agent/create-local-controller';
 import { App } from './app';
 
-export const Root = ({ config }: { config: InitialConfig }) => {
+type RootProps = {
+  config: InitialConfig;
+};
+
+export const Root = ({ config }: RootProps) => {
   const [{ controller, start, store }] = useState(() => {
     const store = createStore();
     const { controller, start } = createLocalController(config, store);

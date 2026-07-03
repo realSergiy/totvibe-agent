@@ -19,8 +19,8 @@ export const createLocalController = (config: InitialConfig, store: Store) => {
       runtime.cancel();
     },
     openKeyPage,
-    resolveApproval: granted => {
-      runtime.resolveApproval(granted);
+    resolveApproval: isGranted => {
+      runtime.resolveApproval(isGranted);
     },
     saveApiKey: (providerName, apiKey) => {
       void runtime.saveApiKey(providerName, apiKey);

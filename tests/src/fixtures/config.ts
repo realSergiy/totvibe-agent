@@ -1,5 +1,7 @@
 import type { InitialConfig } from '@totvibe/runtime';
 
+import { vi } from 'vitest';
+
 const PROVIDER_KEY_ENV_VARS = [
   'DASHSCOPE_API_KEY',
   'ZAI_API_KEY',
@@ -47,12 +49,11 @@ export const isolateProviderEnv = (connectedKeys: Record<string, string>) => {
 };
 
 export const stubFetchOk = () => {
-  const original = globalThis.fetch;
   const stub: typeof globalThis.fetch = Object.assign(() => Promise.resolve(new Response(undefined, { status: 200 })), {
     preconnect: () => void 0,
   });
-  globalThis.fetch = stub;
+  vi.stubGlobal('fetch', stub);
   return () => {
-    globalThis.fetch = original;
+    vi.unstubAllGlobals();
   };
 };

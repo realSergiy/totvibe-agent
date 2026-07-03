@@ -6,7 +6,7 @@ export type RuntimeHost = {
   saveEnvVars(updates: Record<string, string>): Promise<void>;
 };
 
-export const isConnected = (provider: ProviderInfo) => Boolean(process.env[provider.apiKeyEnv]?.trim());
+export const isConnected = ({ apiKeyEnv }: ProviderInfo) => Boolean((process.env[apiKeyEnv] ?? '').trim());
 
 export const bunHost: RuntimeHost = {
   saveEnvVars: async (updates: Record<string, string>) => {

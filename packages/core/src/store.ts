@@ -11,7 +11,7 @@ type MessageRecord = {
   message: ModelMessage;
 };
 
-const messageRecordSchema = z.object({ message: modelMessageSchema });
+const MessageRecordSchema = z.object({ message: modelMessageSchema });
 
 export class SessionStore {
   private readonly log: JsonlLog;
@@ -27,18 +27,18 @@ export class SessionStore {
     return this.log.flushed();
   }
 
-  readonly persist = (event: AgentEvent) => {
+  persist(event: AgentEvent) {
     if (event.type !== 'message') return;
-    this.log.append({ message: event.message } satisfies MessageRecord);
-  };
+    const { message } = event;
+    this.log.append({ message } satisfies MessageRecord);
+  }
 }
 
 const sessionFilePath = (dir: string, sessionId: string) => path.join(dir, `${sessionId}.jsonl`);
 
 export const loadSessionMessages = async (dir: string, sessionId: string) => {
   const log = new JsonlLog(sessionFilePath(dir, sessionId));
-  const rawRecords = await log.readAll();
-  const records = rawRecords.map(record => messageRecordSchema.parse(record));
+  const records = await log.readAll(MessageRecordSchema);
   return records.map(record => record.message);
 };
 

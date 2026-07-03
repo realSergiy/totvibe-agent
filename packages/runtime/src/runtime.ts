@@ -13,7 +13,7 @@ import { buildModel, validateApiKey } from './providers/client';
 
 export type AgentRuntime = {
   cancel(): void;
-  resolveApproval(granted: boolean): void;
+  resolveApproval(isGranted: boolean): void;
   saveApiKey(providerName: string, apiKey: string): Promise<void>;
   selectProvider(providerName: string, modelId: string): void;
   start(): void;
@@ -29,13 +29,30 @@ const shortenPath = (path: string) => {
 
 const connectedProviderNames = () => PROVIDERS.filter(isConnected).map(provider => provider.name);
 
-export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost) => {
-  const session: Session = createSession(config.sessionId, config.initialMessages);
-  const sandbox = new SandboxState(config.cwd);
-  const sessionStore = new SessionStore(config.paths.sessionsDir, config.sessionId);
-  const auditLedger = new AuditLedger(config.paths.auditPath);
+export const createRuntime = (
+  {
+    autoApprove,
+    cwd,
+    initialMessages,
+    limits,
+    modelId: configuredModelId,
+    paths,
+    providerName: configuredProviderName,
+    sandbox: isSandboxEnabled,
+    sandboxNet,
+    sessionId,
+    system,
+  }: InitialConfig,
+  host: RuntimeHost = bunHost,
+) => {
+  const session: Session = createSession(sessionId, initialMessages);
+  const sandbox = new SandboxState(cwd);
+  const sessionStore = new SessionStore(paths.sessionsDir, sessionId);
+  const auditLedger = new AuditLedger(paths.auditPath);
   const eventBus = new EventBus();
-  eventBus.subscribe(sessionStore.persist);
+  eventBus.subscribe(event => {
+    sessionStore.persist(event);
+  });
 
   const listeners = new Set<(event: ServerEvent) => void>();
   const emit = (event: ServerEvent) => {
@@ -43,9 +60,9 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
   };
 
   let abortController: AbortController | undefined;
-  let approvalResolver: ((granted: boolean) => void) | undefined;
-  let activeProviderName = config.providerName;
-  let activeModelId = config.modelId;
+  let approvalResolver: ((isGranted: boolean) => void) | undefined;
+  let activeProviderName = configuredProviderName;
+  let activeModelId = configuredModelId;
 
   const approve = (request: ApprovalRequest) =>
     new Promise<boolean>(resolve => {
@@ -56,15 +73,17 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
 
   const middleware = compose(
     policyGate({
-      approvalTimeoutMs: config.limits.approvalTimeoutMs,
+      approvalTimeoutMs: limits.approvalTimeoutMs,
       approve,
-      mode: config.autoApprove ? 'auto' : 'default',
-      onDecision: auditLedger.record,
+      mode: autoApprove ? 'auto' : 'default',
+      onDecision: entry => {
+        auditLedger.record(entry);
+      },
     }),
   );
   const tools = createBuiltinTools(sandbox, {
-    net: config.sandboxNet,
-    sandbox: config.sandbox,
+    net: sandboxNet,
+    sandbox: isSandboxEnabled,
   });
 
   const doSelectProvider = (providerName: string, modelId: string) => {
@@ -77,7 +96,7 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
 
   const refreshConnection = () => {
     const provider = findProvider(activeProviderName) ?? DEFAULT_PROVIDER;
-    const apiKey = process.env[provider.apiKeyEnv]?.trim();
+    const apiKey = (process.env[provider.apiKeyEnv] ?? '').trim();
     if (!apiKey) {
       emit({ status: 'no-key', type: 'connection-status' });
       return;
@@ -99,16 +118,16 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
   ) => {
     try {
       const events = runAgent(session, text, {
-        cwd: config.cwd,
+        cwd,
         fallbackModel,
-        maxSteps: config.limits.maxSteps,
+        maxSteps: limits.maxSteps,
         middleware,
         model,
         signal,
-        system: config.system,
-        tokenBudget: config.limits.tokenBudget,
+        system,
+        tokenBudget: limits.tokenBudget,
         tools,
-        wallClockMs: config.limits.wallClockMs,
+        wallClockMs: limits.wallClockMs,
       });
       for await (const event of events) {
         emit({ event, type: 'agent' });
@@ -139,8 +158,8 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
       abortController = undefined;
     },
 
-    resolveApproval: granted => {
-      approvalResolver?.(granted);
+    resolveApproval: isGranted => {
+      approvalResolver?.(isGranted);
       approvalResolver = undefined;
       emit({ type: 'approval-request' });
       emit({ status: 'thinking…', type: 'agent-status' });
@@ -173,16 +192,16 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
     },
 
     start: () => {
-      const configuredProvider = findProvider(config.providerName) ?? DEFAULT_PROVIDER;
+      const configuredProvider = findProvider(configuredProviderName) ?? DEFAULT_PROVIDER;
       const activeProvider = isConnected(configuredProvider)
         ? configuredProvider
         : (PROVIDERS.find(isConnected) ?? configuredProvider);
       activeProviderName = activeProvider.name;
-      activeModelId = activeProvider === configuredProvider ? config.modelId : activeProvider.defaultModel;
+      activeModelId = activeProvider === configuredProvider ? configuredModelId : activeProvider.defaultModel;
 
       emit({
         session: {
-          cwd: shortenPath(config.cwd),
+          cwd: shortenPath(cwd),
           isProviderDialogOpen: !isConnected(activeProvider),
           modelId: activeModelId,
           providerName: activeProviderName,
@@ -190,15 +209,15 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
         type: 'init',
       });
       emit({ names: connectedProviderNames(), type: 'connected-providers' });
-      if (config.initialMessages.length > 0) {
+      if (initialMessages.length > 0) {
         emit({
           role: 'tool',
-          text: `resumed session ${config.sessionId} (${String(config.initialMessages.length)} messages)`,
+          text: `resumed session ${sessionId} (${String(initialMessages.length)} messages)`,
           type: 'message',
         });
       }
       refreshConnection();
-      void probeSandbox(config.sandboxNet, config.sandbox).then(status => {
+      void probeSandbox(sandboxNet, isSandboxEnabled).then(status => {
         emit({ status, type: 'sandbox-status' });
       });
     },
@@ -235,7 +254,7 @@ export const createRuntime = (config: InitialConfig, host: RuntimeHost = bunHost
 
     testConnection: async providerName => {
       const provider = findProvider(providerName) ?? DEFAULT_PROVIDER;
-      const apiKey = process.env[provider.apiKeyEnv]?.trim();
+      const apiKey = (process.env[provider.apiKeyEnv] ?? '').trim();
       if (!apiKey) {
         emit({ text: `${provider.apiKeyEnv} is not set — press k to add a key.`, type: 'notice' });
         return;

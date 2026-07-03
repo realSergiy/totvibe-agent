@@ -35,7 +35,7 @@ type TurnResult = {
   tokens: number;
 };
 
-export async function* runAgent(session: Session, userText: string, deps: AgentDeps) {
+export async function* runAgent({ messages }: Session, userText: string, deps: AgentDeps) {
   const maxSteps = deps.maxSteps ?? DEFAULT_MAX_STEPS;
   const middleware = deps.middleware ?? passthrough;
   const modelTools = buildModelToolSet(deps.tools);
@@ -43,7 +43,7 @@ export async function* runAgent(session: Session, userText: string, deps: AgentD
   const deadline = deps.wallClockMs ? Date.now() + deps.wallClockMs : undefined;
 
   const userMessage: ModelMessage = { content: userText, role: 'user' };
-  session.messages.push(userMessage);
+  messages.push(userMessage);
   yield { message: userMessage, type: 'message' } satisfies AgentEvent;
   yield { type: 'turn_start' } satisfies AgentEvent;
 
@@ -65,14 +65,14 @@ export async function* runAgent(session: Session, userText: string, deps: AgentD
 
     let turn: TurnResult;
     try {
-      turn = yield* streamModelTurn(deps.model, deps, session.messages, modelTools);
+      turn = yield* streamModelTurn(deps.model, deps, messages, modelTools);
     } catch (error) {
       if (!deps.fallbackModel) {
         yield { error: describeError(error), type: 'error' } satisfies AgentEvent;
         return;
       }
       try {
-        turn = yield* streamModelTurn(deps.fallbackModel, deps, session.messages, modelTools);
+        turn = yield* streamModelTurn(deps.fallbackModel, deps, messages, modelTools);
       } catch (fallbackError) {
         yield { error: describeError(fallbackError), type: 'error' } satisfies AgentEvent;
         return;
@@ -85,7 +85,7 @@ export async function* runAgent(session: Session, userText: string, deps: AgentD
     }
 
     for (const message of turn.messages) {
-      session.messages.push(message);
+      messages.push(message);
       yield { message, type: 'message' } satisfies AgentEvent;
     }
     usedTokens += turn.tokens;
@@ -97,7 +97,7 @@ export async function* runAgent(session: Session, userText: string, deps: AgentD
 
     const outcomes = await runToolCalls(deps.tools, turn.calls, toolContext, middleware);
     const toolMessage = buildToolMessage(outcomes);
-    session.messages.push(toolMessage);
+    messages.push(toolMessage);
     for (const outcome of outcomes) {
       yield (
         outcome.isError
@@ -134,52 +134,46 @@ const buildToolMessage = (outcomes: ToolCallOutcome[]) => {
 
 const describeError = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-async function* streamModelTurn(model: LanguageModel, deps: AgentDeps, messages: ModelMessage[], modelTools: ToolSet) {
+async function* streamModelTurn(
+  model: LanguageModel,
+  { signal, system }: AgentDeps,
+  messages: ModelMessage[],
+  modelTools: ToolSet,
+) {
   const stream = streamText({
-    abortSignal: deps.signal,
+    abortSignal: signal,
     messages,
     model,
     onError: () => void 0,
-    system: deps.system,
+    system: system,
     tools: modelTools,
   });
 
-  for await (const part of stream.fullStream) {
-    switch (part.type) {
-      case 'error': {
-        throw toError(part.error);
-      }
-      case 'abort': {
-        return {
-          aborted: true,
-          calls: [],
-          finishReason: 'aborted',
-          messages: [],
-          tokens: 0,
-        };
-      }
-      case 'reasoning-delta': {
-        yield { text: part.text, type: 'reasoning' } satisfies AgentEvent;
-        break;
-      }
-      case 'text-delta': {
-        yield { text: part.text, type: 'text' } satisfies AgentEvent;
-        break;
-      }
-      case 'tool-call': {
-        const input: unknown = part.input;
-        yield {
-          id: part.toolCallId,
-          input,
-          name: part.toolName,
-          type: 'tool_call',
-        } satisfies AgentEvent;
-        break;
-      }
+  for await (const part of stream.stream) {
+    if (part.type === 'error') throw toError(part.error);
+    if (part.type === 'abort') {
+      return {
+        aborted: true,
+        calls: [],
+        finishReason: 'aborted',
+        messages: [],
+        tokens: 0,
+      };
+    }
+    if (part.type === 'reasoning-delta' || part.type === 'text-delta') {
+      yield { text: part.text, type: part.type === 'reasoning-delta' ? 'reasoning' : 'text' } satisfies AgentEvent;
+    } else if (part.type === 'tool-call') {
+      const input: unknown = part.input;
+      yield {
+        id: part.toolCallId,
+        input,
+        name: part.toolName,
+        type: 'tool_call',
+      } satisfies AgentEvent;
     }
   }
 
-  const response = await stream.response;
+  const finalStep = await stream.finalStep;
   const finishReason = await stream.finishReason;
   const usage = await stream.usage;
   const toolCalls = await stream.toolCalls;
@@ -191,7 +185,7 @@ async function* streamModelTurn(model: LanguageModel, deps: AgentDeps, messages:
     aborted: false,
     calls,
     finishReason,
-    messages: response.messages,
+    messages: finalStep.response.messages,
     tokens: usage.totalTokens ?? (usage.inputTokens ?? 0) + (usage.outputTokens ?? 0),
   };
 }

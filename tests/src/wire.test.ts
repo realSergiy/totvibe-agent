@@ -1,6 +1,6 @@
 import type { ClientCommand, ServerEvent } from '@totvibe/protocol';
 
-import { expect, test } from 'bun:test';
+import { expect, test } from 'vitest';
 
 const roundTrip = <T>(value: T): T => structuredClone(value);
 

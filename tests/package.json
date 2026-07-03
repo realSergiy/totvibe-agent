@@ -15,7 +15,6 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@happy-dom/global-registrator": "catalog:",
     "@testing-library/react": "catalog:",
     "@types/react-dom": "catalog:"
   }

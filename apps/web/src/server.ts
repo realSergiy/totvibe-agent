@@ -1,7 +1,9 @@
-import { clientCommandSchema, type ServerEvent } from '@totvibe/protocol';
+import { ClientCommandSchema } from '@totvibe/protocol';
 import { type AgentRuntime, createRuntime, loadInitialConfig } from '@totvibe/runtime';
 
 import index from './index.html';
+
+const DEFAULT_SERVE_PORT = 3000;
 
 export type ServeOptions = {
   port?: number;
@@ -13,10 +15,10 @@ type SocketData = {
   unsubscribe?: () => void;
 };
 
-export const startServer = (options: ServeOptions) => {
-  const dev = process.env.NODE_ENV !== 'production';
+export const startServer = ({ port, sandbox }: ServeOptions) => {
+  const isDev = process.env.NODE_ENV !== 'production';
   const server = Bun.serve<SocketData>({
-    development: dev ? { console: true, hmr: true } : false,
+    development: isDev ? { console: true, hmr: true } : false,
     fetch: (request, srv) => {
       if (new URL(request.url).pathname === '/ws') {
         return srv.upgrade(request, { data: {} })
@@ -25,7 +27,7 @@ export const startServer = (options: ServeOptions) => {
       }
       return new Response('not found', { status: 404 });
     },
-    port: options.port ?? 3000,
+    port: port ?? DEFAULT_SERVE_PORT,
     routes: {
       '/': index,
     },
@@ -37,7 +39,7 @@ export const startServer = (options: ServeOptions) => {
       message: (ws, message) => {
         const runtime = ws.data.runtime;
         if (!runtime) return;
-        const command = clientCommandSchema.parse(
+        const command = ClientCommandSchema.parse(
           JSON.parse(typeof message === 'string' ? message : message.toString()),
         );
         switch (command.type) {
@@ -68,10 +70,10 @@ export const startServer = (options: ServeOptions) => {
         }
       },
       open: async ws => {
-        const config = await loadInitialConfig({ sandbox: options.sandbox });
+        const config = await loadInitialConfig({ sandbox: sandbox });
         const runtime = createRuntime(config);
         ws.data.runtime = runtime;
-        ws.data.unsubscribe = runtime.subscribe((event: ServerEvent) => {
+        ws.data.unsubscribe = runtime.subscribe(event => {
           ws.send(JSON.stringify(event));
         });
         runtime.start();

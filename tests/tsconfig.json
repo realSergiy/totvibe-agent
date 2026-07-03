@@ -1,5 +1,5 @@
 {
   "extends": "@totvibe/tsconfig/bun.json",
-  "include": ["src/fixtures", "src/sharedStories", "src/wire.test.ts"],
+  "include": ["src/fixtures", "src/shared-stories", "src/wire.test.ts"],
   "references": [{ "path": "../packages/core" }, { "path": "../packages/protocol" }, { "path": "../packages/runtime" }]
 }

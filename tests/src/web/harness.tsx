@@ -1,11 +1,10 @@
-import '@/fixtures/model-mock';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import { createRuntime } from '@totvibe/runtime';
 import { type AgentController, applyServerEvent, type Store } from '@totvibe/view';
 import { Root } from '@totvibe/web';
 import { act } from 'react';
 
-import type { Scene } from '@/sharedStories/harness';
+import type { Scene } from '@/shared-stories/harness';
 
 import { buildConfig, CONNECTED_PROVIDER_KEYS, isolateProviderEnv, stubFetchOk } from '@/fixtures/config';
 import { resetModelReply, setModelReply } from '@/fixtures/model-mock';
@@ -13,6 +12,8 @@ import { resetModelReply, setModelReply } from '@/fixtures/model-mock';
 type RenderOptions = {
   connectedProviderKeys?: Record<string, string>;
 };
+
+const EVENTUALLY_MAX_PASSES = 50;
 
 const createInProcessController = (store: Store) => {
   const runtime = createRuntime(buildConfig());
@@ -24,8 +25,8 @@ const createInProcessController = (store: Store) => {
       runtime.cancel();
     },
     openKeyPage: () => void 0,
-    resolveApproval: granted => {
-      runtime.resolveApproval(granted);
+    resolveApproval: isGranted => {
+      runtime.resolveApproval(isGranted);
     },
     saveApiKey: (providerName, apiKey) => {
       void runtime.saveApiKey(providerName, apiKey);
@@ -62,8 +63,8 @@ const inputBar = () => {
   return input;
 };
 
-const renderScene = async (options: RenderOptions) => {
-  const restoreEnv = isolateProviderEnv(options.connectedProviderKeys ?? {});
+const renderScene = async ({ connectedProviderKeys }: RenderOptions) => {
+  const restoreEnv = isolateProviderEnv(connectedProviderKeys ?? {});
   const restoreFetch = stubFetchOk();
 
   await act(async () => {
@@ -92,7 +93,7 @@ const renderScene = async (options: RenderOptions) => {
     },
     assert: {
       eventuallyShows: async text => {
-        for (let pass = 0; pass < 50; pass += 1) {
+        for (let pass = 0; pass < EVENTUALLY_MAX_PASSES; pass += 1) {
           if (visibleText().includes(text)) return;
           await flush();
         }

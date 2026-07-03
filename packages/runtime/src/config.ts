@@ -42,25 +42,30 @@ type StorePaths = {
   sessionsDir: string;
 };
 
+const DEFAULT_MAX_STEPS = 24;
+const DEFAULT_TOKEN_BUDGET_CONTEXT_WINDOWS = 8;
+const DEFAULT_WALL_CLOCK_MS = 600_000;
+
 const parsePositiveInt = (raw: string | undefined) => {
   if (raw === undefined) return;
-  const parsed = Number.parseInt(raw, 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  const parsed = Number(raw);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
 };
 
-const buildLimits = (provider: ProviderInfo) => ({
+const buildLimits = ({ metadata }: ProviderInfo) => ({
   approvalTimeoutMs: parsePositiveInt(process.env.TOTVIBE_APPROVAL_TIMEOUT_MS) ?? 0,
-  maxSteps: parsePositiveInt(process.env.TOTVIBE_MAX_STEPS) ?? 24,
-  tokenBudget: parsePositiveInt(process.env.TOTVIBE_TOKEN_BUDGET) ?? provider.metadata.contextWindow * 8,
-  wallClockMs: parsePositiveInt(process.env.TOTVIBE_WALL_CLOCK_MS) ?? 600_000,
+  maxSteps: parsePositiveInt(process.env.TOTVIBE_MAX_STEPS) ?? DEFAULT_MAX_STEPS,
+  tokenBudget:
+    parsePositiveInt(process.env.TOTVIBE_TOKEN_BUDGET) ?? metadata.contextWindow * DEFAULT_TOKEN_BUDGET_CONTEXT_WINDOWS,
+  wallClockMs: parsePositiveInt(process.env.TOTVIBE_WALL_CLOCK_MS) ?? DEFAULT_WALL_CLOCK_MS,
 });
 
 const resolveDataDir = () => process.env.TOTVIBE_DATA_DIR ?? path.join(homedir(), '.totvibe');
 
-const resolveSession = async (cli: CliOptions, paths: StorePaths) => {
-  const requestedId = cli.resume ?? (cli.continueLast ? await findLatestSessionId(paths.sessionsDir) : undefined);
+const resolveSession = async ({ continueLast, resume }: CliOptions, { sessionsDir }: StorePaths) => {
+  const requestedId = resume ?? (continueLast ? await findLatestSessionId(sessionsDir) : undefined);
   if (!requestedId) return { initialMessages: [], sessionId: crypto.randomUUID() };
-  const initialMessages = await loadSessionMessages(paths.sessionsDir, requestedId);
+  const initialMessages = await loadSessionMessages(sessionsDir, requestedId);
   return { initialMessages, sessionId: requestedId };
 };
 

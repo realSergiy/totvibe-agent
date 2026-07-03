@@ -2,9 +2,9 @@ import { DEFAULT_PROVIDER, type ProviderInfo, PROVIDERS } from '@totvibe/protoco
 import {
   connectedProvidersAtom,
   connectionStatusAtom,
-  isProviderDialogOpenAtom,
   modelIdAtom,
   noticeAtom,
+  providerDialogOpenAtom,
   providerNameAtom,
   theme,
   useController,
@@ -20,7 +20,7 @@ export const ProviderDialog = () => {
   const connectedProviders = useAtomValue(connectedProvidersAtom);
   const notice = useAtomValue(noticeAtom);
   const setNotice = useSetAtom(noticeAtom);
-  const setProviderDialogOpen = useSetAtom(isProviderDialogOpenAtom);
+  const setProviderDialogOpen = useSetAtom(providerDialogOpenAtom);
   const canClose = connectionStatus !== 'no-key';
 
   const initialIndex = Math.max(
@@ -32,9 +32,9 @@ export const ProviderDialog = () => {
   const [modelValue, setModelValue] = useState('');
 
   const highlightedProvider = PROVIDERS[highlightedIndex] ?? DEFAULT_PROVIDER;
-  const isConnected = (provider: ProviderInfo) => connectedProviders.has(provider.name);
-  const resolveModelId = (provider: ProviderInfo) =>
-    provider.name === activeProviderName ? activeModelId : provider.defaultModel;
+  const isConnected = ({ name }: ProviderInfo) => connectedProviders.has(name);
+  const resolveModelId = ({ defaultModel, name }: ProviderInfo) =>
+    name === activeProviderName ? activeModelId : defaultModel;
 
   const activateProvider = (provider: ProviderInfo) => {
     if (!isConnected(provider)) {

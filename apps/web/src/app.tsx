@@ -1,4 +1,4 @@
-import { isProviderDialogOpenAtom, isStreamingAtom, pendingApprovalAtom, useController } from '@totvibe/view';
+import { pendingApprovalAtom, providerDialogOpenAtom, streamingAtom, useController } from '@totvibe/view';
 import { useAtomValue, useStore } from 'jotai';
 import { useEffect } from 'react';
 
@@ -11,12 +11,12 @@ import { StatusBar } from './components/status-bar';
 export const App = () => {
   const controller = useController();
   const store = useStore();
-  const isProviderDialogOpen = useAtomValue(isProviderDialogOpenAtom);
+  const isProviderDialogOpen = useAtomValue(providerDialogOpenAtom);
 
   useEffect(() => {
-    const onKeydown = (event: KeyboardEvent) => {
-      if (store.get(isProviderDialogOpenAtom) || store.get(pendingApprovalAtom)) return;
-      if (event.key === 'Escape' && store.get(isStreamingAtom)) controller.cancel();
+    const onKeydown = ({ key }: KeyboardEvent) => {
+      if (store.get(providerDialogOpenAtom) || store.get(pendingApprovalAtom)) return;
+      if (key === 'Escape' && store.get(streamingAtom)) controller.cancel();
     };
     globalThis.addEventListener('keydown', onKeydown);
     return () => {

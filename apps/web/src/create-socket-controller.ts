@@ -1,6 +1,6 @@
 import type { ClientCommand } from '@totvibe/protocol';
 
-import { serverEventSchema } from '@totvibe/protocol';
+import { ServerEventSchema } from '@totvibe/protocol';
 import { type AgentController, applyServerEvent, type Store } from '@totvibe/view';
 
 type WebController = {
@@ -22,8 +22,8 @@ export const createSocketController = (store: Store) => {
     openKeyPage: url => {
       window.open(url, '_blank', 'noopener');
     },
-    resolveApproval: granted => {
-      send({ granted, type: 'approve' });
+    resolveApproval: isGranted => {
+      send({ granted: isGranted, type: 'approve' });
     },
     saveApiKey: (providerName, apiKey) => {
       send({ apiKey, providerName, type: 'save-api-key' });
@@ -45,7 +45,7 @@ export const createSocketController = (store: Store) => {
       socket = new WebSocket(socketUrl);
       socket.addEventListener('message', event => {
         if (typeof event.data !== 'string') return;
-        applyServerEvent(store, serverEventSchema.parse(JSON.parse(event.data)));
+        applyServerEvent(store, ServerEventSchema.parse(JSON.parse(event.data)));
       });
     },
   } satisfies WebController;

@@ -1,29 +1,22 @@
-import * as realAiCore from '@totvibe/core/ai-core';
-import { mock } from 'bun:test';
-
-const realExports = { ...realAiCore };
-
-let scriptedReply = '';
+const scriptedModel = { reply: '' };
 
 export const resetModelReply = () => {
-  scriptedReply = '';
+  scriptedModel.reply = '';
 };
 
 export const setModelReply = (reply: string) => {
-  scriptedReply = reply;
+  scriptedModel.reply = reply;
 };
 
-const streamText = () => {
-  const reply = scriptedReply;
+export const streamScriptedReply = () => {
+  const reply = scriptedModel.reply;
   return {
+    finalStep: Promise.resolve({ response: { messages: [{ content: reply, role: 'assistant' }] } }),
     finishReason: Promise.resolve('stop'),
-    fullStream: (function* () {
+    stream: (function* () {
       yield { text: reply, type: 'text-delta' };
     })(),
-    response: Promise.resolve({ messages: [{ content: reply, role: 'assistant' }] }),
     toolCalls: Promise.resolve([]),
     usage: Promise.resolve({ inputTokens: 0, outputTokens: 0, totalTokens: 0 }),
   };
 };
-
-void mock.module('@totvibe/core/ai-core', () => ({ ...realExports, streamText }));

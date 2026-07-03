@@ -1,5 +1,5 @@
 import { useKeyboard, useRenderer } from '@opentui/react';
-import { isProviderDialogOpenAtom, isStreamingAtom, pendingApprovalAtom, useController } from '@totvibe/view';
+import { pendingApprovalAtom, providerDialogOpenAtom, streamingAtom, useController } from '@totvibe/view';
 import { useAtomValue, useStore } from 'jotai';
 
 import { ApprovalPrompt } from './components/approval-prompt';
@@ -12,15 +12,15 @@ export const App = () => {
   const renderer = useRenderer();
   const controller = useController();
   const store = useStore();
-  const isProviderDialogOpen = useAtomValue(isProviderDialogOpenAtom);
+  const isProviderDialogOpen = useAtomValue(providerDialogOpenAtom);
 
   useKeyboard(key => {
     if (key.name === 'c' && key.ctrl) {
       renderer.destroy();
       return;
     }
-    if (store.get(isProviderDialogOpenAtom) || store.get(pendingApprovalAtom)) return;
-    if (key.name === 'escape' && store.get(isStreamingAtom)) controller.cancel();
+    if (store.get(providerDialogOpenAtom) || store.get(pendingApprovalAtom)) return;
+    if (key.name === 'escape' && store.get(streamingAtom)) controller.cancel();
   });
 
   return (
