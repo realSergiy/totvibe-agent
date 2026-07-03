@@ -49,7 +49,7 @@
     "format": "prettier --write .",
     "knip": "knip-bun",
     "test": "vitest run",
-    "build:sandbox": "bash scripts/build-sandbox.sh",
+    "build:sandbox": "./scripts/build_sandbox.py",
     "upgrade": "npm-check-updates --root --workspaces --format group",
     "cz": "cz"
   },
