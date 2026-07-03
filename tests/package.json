@@ -3,16 +3,37 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
+  "imports": {
+    "#core": "./core/fixtures.ts",
+    "#fixtures/config": "./fixtures/config.ts",
+    "#model-mock": "./fixtures/model-mock.ts",
+    "#protocol": "./protocol/fixtures.ts",
+    "#runtime": "./runtime/fixtures.ts",
+    "#safety": "./safety/fixtures.ts",
+    "#sandbox": "./sandbox/fixtures.ts",
+    "#shared-stories": "./shared-stories/index.ts",
+    "#shared-stories/harness": "./shared-stories/harness.ts",
+    "#tools": "./tools/fixtures.ts",
+    "#tui": "./tui/fixtures.ts",
+    "#view": "./view/fixtures.ts",
+    "#web": "./web/fixtures.ts"
+  },
   "dependencies": {
     "@opentui/react": "catalog:",
     "@totvibe/core": "workspace:*",
     "@totvibe/protocol": "workspace:*",
     "@totvibe/runtime": "workspace:*",
+    "@totvibe/safety": "workspace:*",
+    "@totvibe/sandbox": "workspace:*",
+    "@totvibe/tools": "workspace:*",
     "@totvibe/tui": "workspace:*",
     "@totvibe/view": "workspace:*",
     "@totvibe/web": "workspace:*",
+    "ai": "catalog:",
+    "jotai": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@testing-library/react": "catalog:",

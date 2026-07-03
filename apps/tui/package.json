@@ -1,14 +1,13 @@
 {
   "name": "@totvibe/tui",
   "version": "0.1.0",
+  "private": true,
   "type": "module",
-  "module": "./src/index.tsx",
   "bin": {
     "totvibe": "./src/index.tsx"
   },
   "exports": {
-    ".": "./src/index.tsx",
-    "./root": "./src/root.tsx"
+    ".": "./src/root.tsx"
   },
   "dependencies": {
     "@opentui/core": "catalog:",

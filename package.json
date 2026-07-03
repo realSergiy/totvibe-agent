@@ -21,6 +21,7 @@
       "@types/bun": "latest",
       "@types/react": "^19",
       "@types/react-dom": "^19",
+      "@vitest/coverage-istanbul": "^4.1.9",
       "@zyplux/eslint-config": "^0.6.5",
       "ai": "^7",
       "citty": "^0.2.2",
@@ -51,18 +52,19 @@
     "upgrade": "npm-check-updates --root --workspaces --format group"
   },
   "devDependencies": {
-    "npm-check-updates": "catalog:",
-    "prettier": "catalog:",
-    "typescript": "catalog:",
-    "@zyplux/eslint-config": "catalog:",
     "@totvibe/tsconfig": "workspace:*",
     "@types/bun": "catalog:",
     "@types/react": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
+    "@zyplux/eslint-config": "catalog:",
     "eslint": "catalog:",
     "happy-dom": "catalog:",
     "jiti": "catalog:",
     "knip": "catalog:",
+    "npm-check-updates": "catalog:",
+    "prettier": "catalog:",
     "react": "catalog:",
+    "typescript": "catalog:",
     "vitest": "catalog:"
   }
 }
