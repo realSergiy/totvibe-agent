@@ -37,11 +37,12 @@ knip:
 typecheck:
     bun run typecheck
 
-# Lint and format every workspace package: eslint --fix + prettier --write
+# Lint and format every workspace package (eslint --fix + prettier --write), then verify org invariants with cerberus.
 lint:
     uv run rumdl check --fix
     bun run lint:fix
     bun run format
+    uvx --from zyplux-cerberus cerberus --fix
 
 # Run both test suites: terminal (OpenTUI) and web (happy-dom)
 test:
