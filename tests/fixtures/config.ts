@@ -49,11 +49,12 @@ export const isolateProviderEnv = (connectedKeys: Record<string, string>) => {
 };
 
 export const stubFetchOk = () => {
+  const originalFetch = globalThis.fetch;
   const stub: typeof globalThis.fetch = Object.assign(() => Promise.resolve(new Response(undefined, { status: 200 })), {
     preconnect: () => void 0,
   });
   vi.stubGlobal('fetch', stub);
   return () => {
-    vi.unstubAllGlobals();
+    vi.stubGlobal('fetch', originalFetch);
   };
 };

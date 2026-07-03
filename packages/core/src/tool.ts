@@ -91,26 +91,6 @@ export const findToolDefinition = (definitions: AnyToolDef[], name: string) =>
 
 export const isReadOnly = ({ risk }: AnyToolDef) => risk === 'read';
 
-const collectReadOnlyBatch = (
-  definitions: AnyToolDef[],
-  calls: ToolCallRequest[],
-  startIndex: number,
-  context: ToolContext,
-  middleware: Middleware,
-) => {
-  const batch: Promise<ToolCallOutcome>[] = [];
-  let index = startIndex;
-  while (index < calls.length) {
-    const batchCall = calls[index];
-    if (!batchCall) return { batch, nextIndex: index };
-    const nextToolDef = findToolDefinition(definitions, batchCall.toolName);
-    if (!nextToolDef || !isReadOnly(nextToolDef)) return { batch, nextIndex: index };
-    batch.push(executeToolCall(definitions, batchCall, context, middleware));
-    index += 1;
-  }
-  return { batch, nextIndex: index };
-};
-
 export const runToolCalls = async (
   definitions: AnyToolDef[],
   calls: ToolCallRequest[],
@@ -118,23 +98,20 @@ export const runToolCalls = async (
   middleware: Middleware,
 ) => {
   const outcomes: ToolCallOutcome[] = [];
-  let index = 0;
-  while (index < calls.length) {
-    const call = calls[index];
-    if (!call) break;
+  let readOnlyBatch: Promise<ToolCallOutcome>[] = [];
+  const settleReadOnlyBatch = async () => {
+    outcomes.push(...(await Promise.all(readOnlyBatch)));
+    readOnlyBatch = [];
+  };
+  for (const call of calls) {
     const definition = findToolDefinition(definitions, call.toolName);
     if (definition && isReadOnly(definition)) {
-      const batchStart = index;
-      const { batch, nextIndex } = collectReadOnlyBatch(definitions, calls, index, context, middleware);
-      index = nextIndex;
-      const settled = await Promise.all(batch);
-      for (const [offset, outcome] of settled.entries()) {
-        outcomes[batchStart + offset] = outcome;
-      }
+      readOnlyBatch.push(executeToolCall(definitions, call, context, middleware));
     } else {
-      outcomes[index] = await executeToolCall(definitions, call, context, middleware);
-      index += 1;
+      await settleReadOnlyBatch();
+      outcomes.push(await executeToolCall(definitions, call, context, middleware));
     }
   }
+  await settleReadOnlyBatch();
   return outcomes;
 };
